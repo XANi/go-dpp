@@ -8,6 +8,8 @@ import (
 	"strings"
 	//	"golang.org/x/net/context"
 	"./web"
+	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-yamlcfg"
 	"net/http"
 )
 
@@ -23,12 +25,22 @@ func main() {
 	logging.SetFormatter(stdout_log_format)
 
 	log.Info("Starting app")
-	log.Debug("version: %s", version)
+	log.Debugf("version: %s", version)
 	if !strings.ContainsRune(version, '-') {
 		log.Warning("once you tag your commit with name your version number will be prettier")
 	}
 	log.Error("now add some code!")
-
+	cfgFiles := []string{
+		"./cfg/dpp.conf",
+		"./cfg/dpp.default.conf",
+		"/etc/my/cnf.yaml",
+	}
+	var cfg config.Config
+	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
+	if err != nil {
+		log.Errorf("Config error: %+v", err)
+	}
+	log.Debugf("Config: %+v", cfg)
 	renderer, err := web.New()
 	if err != nil {
 		log.Errorf("Renderer failed with: %s", err)
@@ -37,5 +49,6 @@ func main() {
 	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
 	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
 	mux.HandleFuncC(pat.Get("/"), renderer.HandleRoot)
+	log.Infof("Listening on %s", listenAddr)
 	http.ListenAndServe(listenAddr, mux)
 }

@@ -17,6 +17,7 @@ TAGS
 *.o
 *.a
 *.so
+dpp
 
 # various output files
 *.out
@@ -45,4 +46,4 @@ _testmain.go
 # local test data
 
 t-data/*local
-
+cfg/*
