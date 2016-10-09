@@ -3,7 +3,7 @@ package config
 type Config struct {
 	Repo         map[string]Repository `yaml:"repo"`
 	UseRepos     []string              `yaml:"use_repos"`
-	ManifestFrom string                `yaml:"shared"`
+	ManifestFrom string                `yaml:"manifest_from"`
 	RepoDir      string                `yaml:"repo_dir"`
 	ListenAddr   string                `yaml:"listen_addr"`
 	Log          struct {

@@ -9,6 +9,7 @@ import (
 	//	"golang.org/x/net/context"
 	"./web"
 	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-yamlcfg"
 	"net/http"
 )
@@ -50,5 +51,16 @@ func main() {
 	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
 	mux.HandleFuncC(pat.Get("/"), renderer.HandleRoot)
 	log.Infof("Listening on %s", listenAddr)
-	http.ListenAndServe(listenAddr, mux)
+	go http.ListenAndServe(listenAddr, mux)
+
+	// prepare paths
+	log.Infof("%+v", cfg.UseRepos)
+	modulePath := make([]string, len(cfg.UseRepos))
+	for i, k := range cfg.UseRepos {
+		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
+	}
+	log.Errorf("%+v", modulePath)
+	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
+	log.Info(err)
+	pup.Run()
 }
