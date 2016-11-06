@@ -5,6 +5,8 @@ all: dep
 	gom exec go build  -ldflags "-X main.version=$(version)" dpp.go
 	go fmt
 
+compile:
+	gom exec go build  -ldflags "-X main.version=$(version)" dpp.go
 
 dep:
 	gom install

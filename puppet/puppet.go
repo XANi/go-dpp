@@ -42,21 +42,21 @@ func (p *Puppet)Run() (err error) {
 	if err := cmd.Start(); err != nil {	return err	}
 	//attach loggers
 	p.ioLock.Add(2)
-	go p.handleStdout(stdout)
-	go p.handleStderr(stderr)
+	go p.logStdout(stdout)
+	go p.logStderr(stderr)
 	p.ioLock.Wait()
 	log.Notice("Puppet run ended")
 	return err
 }
 
-func(p *Puppet) handleStdout(r io.Reader) {
+func(p *Puppet) logStdout(r io.Reader) {
 	defer p.ioLock.Done()
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		log.Notice(scanner.Text()) // Println will add back the final '\n'
 	}
 }
-func(p *Puppet) handleStderr(r io.Reader) {
+func(p *Puppet) logStderr(r io.Reader) {
 	defer p.ioLock.Done()
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {

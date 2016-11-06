@@ -11,13 +11,16 @@ import (
 	"github.com/XANi/go-dpp/config"
 	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-yamlcfg"
+	"github.com/XANi/go-dpp/repo"
 	"net/http"
+	"time"
 )
 
 var version string
 var log = logging.MustGetLogger("main")
 var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.9999Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
 var listenAddr = "127.0.0.1:3002"
+var exit = make(chan bool)
 
 func main() {
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", 0)
@@ -55,12 +58,27 @@ func main() {
 
 	// prepare paths
 	log.Infof("%+v", cfg.UseRepos)
+	// TODO create parent
 	modulePath := make([]string, len(cfg.UseRepos))
+	repoPath := make(map[string]string, len(cfg.UseRepos))
 	for i, k := range cfg.UseRepos {
 		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
+		repoPath[k] = cfg.RepoDir + "/" + k
+
 	}
 	log.Errorf("%+v", modulePath)
 	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
 	log.Info(err)
+	r,err := repo.New(repo.Config{
+		PullAddress: cfg.Repo["public"].PullUrl,
+		Branch: cfg.Repo["public"].Branch,
+		TargetDir: repoPath["public"],	}	)
+	_ = r
+	if err != nil {
+		log.Errorf("git err: %s",err)
+	}
+	time.Sleep(100 * time.Millisecond)
 	pup.Run()
+	e := <- exit
+	_ = e
 }
