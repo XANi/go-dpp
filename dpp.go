@@ -5,13 +5,12 @@ import (
 	"goji.io"
 	"goji.io/pat"
 	"os"
-	"strings"
 	//	"golang.org/x/net/context"
+	"./config"
+	"./overlord"
 	"./web"
-	"github.com/XANi/go-dpp/config"
 	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-yamlcfg"
-	"github.com/XANi/go-dpp/repo"
 	"net/http"
 	"time"
 )
@@ -30,10 +29,6 @@ func main() {
 
 	log.Info("Starting app")
 	log.Debugf("version: %s", version)
-	if !strings.ContainsRune(version, '-') {
-		log.Warning("once you tag your commit with name your version number will be prettier")
-	}
-	log.Error("now add some code!")
 	cfgFiles := []string{
 		"./cfg/dpp.conf",
 		"./cfg/dpp.default.conf",
@@ -52,7 +47,7 @@ func main() {
 	mux := goji.NewMux()
 	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
 	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
-	mux.HandleFuncC(pat.Get("/"), renderer.HandleRoot)
+	mux.HandleFunc(pat.Get("/"), renderer.HandleRoot)
 	log.Infof("Listening on %s", listenAddr)
 	go http.ListenAndServe(listenAddr, mux)
 
@@ -69,16 +64,10 @@ func main() {
 	log.Errorf("%+v", modulePath)
 	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
 	log.Info(err)
-	r,err := repo.New(repo.Config{
-		PullAddress: cfg.Repo["public"].PullUrl,
-		Branch: cfg.Repo["public"].Branch,
-		TargetDir: repoPath["public"],	}	)
+	r, err := overlord.New(&cfg)
 	_ = r
-	if err != nil {
-		log.Errorf("git err: %s",err)
-	}
 	time.Sleep(100 * time.Millisecond)
 	pup.Run()
-	e := <- exit
+	e := <-exit
 	_ = e
 }

@@ -9,6 +9,9 @@ type Config struct {
 	Log          struct {
 		Level string `yaml:"level"`
 	} `yaml:"log"`
+	// normally app continues if config errors are reasonably recoverable (so bad push can be fixed remotely
+	// that changes it to "die if something is wrong"
+	KillOnBadConfig bool `yaml:"kill_on_bad_config"`
 }
 
 type Repository struct{
