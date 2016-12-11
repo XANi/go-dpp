@@ -50,6 +50,12 @@ func New(cfg Config) (r *Repo, err error) {
 	if err != nil {return r, err}
 	err = gitRepo.Checkout("remotes/origin/master")
 	if err != nil {return r, err}
+	err = gitRepo.SubmoduleInit()
+	if err != nil {return r, err}
+	err = gitRepo.SubmoduleSync()
+	if err != nil {return r, err}
+	err = gitRepo.SubmoduleUpdate()
+	if err != nil {return r, err}
 	repo.repo = &gitRepo
 	return &repo,err
 }

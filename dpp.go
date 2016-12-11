@@ -30,9 +30,10 @@ func main() {
 	log.Info("Starting app")
 	log.Debugf("version: %s", version)
 	cfgFiles := []string{
+		"$HOME/.config/dpp/cnf.yaml",
+		"/etc/my/cnf.yaml",
 		"./cfg/dpp.conf",
 		"./cfg/dpp.default.conf",
-		"/etc/my/cnf.yaml",
 	}
 	var cfg config.Config
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)

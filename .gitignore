@@ -18,6 +18,7 @@ TAGS
 *.a
 *.so
 dpp
+.rnd
 
 # various output files
 *.out
