@@ -4,6 +4,7 @@ import (
 	"github.com/op/go-logging"
 	"../config"
 	"../repo"
+	"sync"
 )
 
 var log = logging.MustGetLogger("main")
@@ -11,6 +12,8 @@ var log = logging.MustGetLogger("main")
 type Overlord struct {
 	cfg *config.Config
 	repos map[string]*repo.Repo
+	repoUpdateLock sync.WaitGroup
+	sync.Mutex
 }
 
 func New(cfg *config.Config)  (o *Overlord, err error) {
@@ -42,4 +45,24 @@ func New(cfg *config.Config)  (o *Overlord, err error) {
 		}
 	}
 	return &overlord, err
+}
+
+func (o *Overlord)Update() error {
+	var wg sync.WaitGroup
+	o.Lock()
+	for name, r := range o.repos {
+		go func() {} ()
+		log.Debugf("Updating repo %s",name)
+		wg.Add(1)
+		go func(r *repo.Repo, wg *sync.WaitGroup) {
+			err := r.Update()
+			if err != nil {
+				log.Warningf("Error updating %s: %s", name, err)
+			}
+			wg.Done()
+		} (r, &wg)
+	}
+	wg.Wait()
+	o.Unlock()
+	return nil
 }

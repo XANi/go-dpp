@@ -6,6 +6,8 @@ type Config struct {
 	ManifestFrom string                `yaml:"manifest_from"`
 	RepoDir      string                `yaml:"repo_dir"`
 	ListenAddr   string                `yaml:"listen_addr"`
+	Debug        bool                  `yaml:"debug"`
+	RepoPollInterval int `yaml:"poll_interval"`
 	Log          struct {
 		Level string `yaml:"level"`
 	} `yaml:"log"`

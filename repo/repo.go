@@ -59,3 +59,12 @@ func New(cfg Config) (r *Repo, err error) {
 	repo.repo = &gitRepo
 	return &repo,err
 }
+
+func (r *Repo)Update() error{
+	err := r.repo.Fetch("origin")
+	if err != nil {return err}
+	err = r.repo.Checkout("remotes/origin/master")
+	if err != nil {return err}
+	err = r.repo.Clean("--force","-x",)
+	return err
+}

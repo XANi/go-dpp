@@ -17,7 +17,8 @@ import (
 
 var version string
 var log = logging.MustGetLogger("main")
-var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.9999Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
+var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05}%{color:reset}%{color} [%{level:.1s}] %{shortpkg}%{color:reset} %{message}")
+var stdout_debug_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.99Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
 var listenAddr = "127.0.0.1:3002"
 var exit = make(chan bool)
 
@@ -25,7 +26,6 @@ func main() {
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_log_format)
 	logging.SetBackend(stderrFormatter)
-	logging.SetFormatter(stdout_log_format)
 
 	log.Info("Starting app")
 	log.Debugf("version: %s", version)
@@ -35,10 +35,16 @@ func main() {
 		"./cfg/dpp.conf",
 		"./cfg/dpp.default.conf",
 	}
-	var cfg config.Config
+	cfg := config.Config{
+		RepoPollInterval: 600,
+	}
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
 		log.Errorf("Config error: %+v", err)
+	}
+	if cfg.Debug {
+		stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_debug_log_format)
+		logging.SetBackend(stderrFormatter)
 	}
 	log.Debugf("Config: %+v", cfg)
 	renderer, err := web.New()
@@ -67,7 +73,13 @@ func main() {
 	log.Info(err)
 	r, err := overlord.New(&cfg)
 	_ = r
-	time.Sleep(100 * time.Millisecond)
+	go func() {
+		for {
+			time.Sleep(time.Second * time.Duration(cfg.RepoPollInterval))
+			log.Noticef("updating")
+			r.Update()
+		}
+	}()
 	pup.Run()
 	e := <-exit
 	_ = e
