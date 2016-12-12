@@ -31,7 +31,7 @@ func main() {
 	log.Debugf("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
-		"/etc/my/cnf.yaml",
+		"/etc/dpp/config.yaml",
 		"./cfg/dpp.conf",
 		"./cfg/dpp.default.conf",
 	}
