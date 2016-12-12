@@ -37,6 +37,11 @@ func main() {
 	}
 	cfg := config.Config{
 		RepoPollInterval: 600,
+		Puppet: config.PuppetInterval{
+			StartWait:       60,
+			ScheduleRun:     3600,
+			MinimumInterval: 300,
+		},
 	}
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
@@ -75,12 +80,20 @@ func main() {
 	_ = r
 	go func() {
 		for {
-			time.Sleep(time.Second * time.Duration(cfg.RepoPollInterval))
-			log.Noticef("updating")
+			log.Noticef("updating repos")
 			r.Update()
+			time.Sleep(time.Second * time.Duration(cfg.RepoPollInterval))
 		}
 	}()
-	pup.Run()
+
+	go func() {
+		for {
+			r.Lock()
+			pup.Run()
+			r.Unlock()
+			time.Sleep(time.Second * time.Duration(cfg.Puppet.ScheduleRun))
+		}
+	}()
 	e := <-exit
 	_ = e
 }
