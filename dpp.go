@@ -6,10 +6,10 @@ import (
 	"goji.io/pat"
 	"os"
 	//	"golang.org/x/net/context"
-	"./config"
-	"./overlord"
-	"./web"
+	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-dpp/overlord"
 	"github.com/XANi/go-dpp/puppet"
+	"github.com/XANi/go-dpp/web"
 	"github.com/XANi/go-yamlcfg"
 	"net/http"
 	"time"
@@ -31,7 +31,7 @@ func main() {
 	log.Debugf("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
-		"/etc/my/cnf.yaml",
+		"/etc/dpp/config.yaml",
 		"./cfg/dpp.conf",
 		"./cfg/dpp.default.conf",
 	}

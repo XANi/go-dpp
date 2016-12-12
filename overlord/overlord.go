@@ -2,8 +2,8 @@ package overlord
 
 import (
 	"github.com/op/go-logging"
-	"../config"
-	"../repo"
+	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-dpp/repo"
 	"sync"
 )
 
@@ -63,6 +63,7 @@ func (o *Overlord)Update() error {
 		} (r, &wg)
 	}
 	wg.Wait()
+	log.Debug("update done")
 	o.Unlock()
 	return nil
 }
