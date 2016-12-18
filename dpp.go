@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/op/go-logging"
-	"goji.io"
-	"goji.io/pat"
 	"os"
 	//	"golang.org/x/net/context"
 	"github.com/XANi/go-dpp/config"
@@ -11,7 +9,6 @@ import (
 	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-dpp/web"
 	"github.com/XANi/go-yamlcfg"
-	"net/http"
 	"time"
 )
 
@@ -26,7 +23,6 @@ func main() {
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_log_format)
 	logging.SetBackend(stderrFormatter)
-
 	log.Info("Starting app")
 	log.Debugf("version: %s", version)
 	cfgFiles := []string{
@@ -44,6 +40,7 @@ func main() {
 			MinimumInterval: 300,
 		},
 	}
+
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
 		log.Errorf("Config error: %+v", err)
@@ -53,16 +50,13 @@ func main() {
 		logging.SetBackend(stderrFormatter)
 	}
 	log.Debugf("Config: %+v", cfg)
-	renderer, err := web.New()
+	web, err := web.New(&cfg)
 	if err != nil {
-		log.Errorf("Renderer failed with: %s", err)
+		log.Errorf("starting web server failed with: %s", err)
 	}
-	mux := goji.NewMux()
-	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
-	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
-	mux.HandleFunc(pat.Get("/"), renderer.HandleRoot)
+
 	log.Infof("Listening on %s", cfg.ListenAddr)
-	go http.ListenAndServe(cfg.ListenAddr, mux)
+	go web.Listen()
 
 	// prepare paths
 	log.Infof("%+v", cfg.UseRepos)
@@ -74,6 +68,7 @@ func main() {
 		repoPath[k] = cfg.RepoDir + "/" + k
 
 	}
+
 	log.Errorf("%+v", modulePath)
 	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
 	if err != nil {
@@ -90,7 +85,6 @@ func main() {
 			time.Sleep(time.Second * time.Duration(cfg.RepoPollInterval))
 		}
 	}()
-
 	go func() {
 		for {
 			r.Lock()

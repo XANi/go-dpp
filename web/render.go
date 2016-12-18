@@ -11,7 +11,7 @@ import (
 
 )
 var log = logging.MustGetLogger("main")
-type Renderer struct {
+type renderer struct {
 	templateCache map[string]*template.Template
 	Cache bool
 	Params map[string]string
@@ -19,8 +19,8 @@ type Renderer struct {
 	sync.RWMutex
 }
 
-func New() (r *Renderer,err error) {
-	var v Renderer
+func newRenderer() (r *renderer,err error) {
+	var v renderer
 	v.templateCache = make(map[string]*template.Template)
 	v.Cache=true
 	v.Params = make(map[string]string)
@@ -29,20 +29,20 @@ func New() (r *Renderer,err error) {
 }
 
 
-func (r *Renderer) Handle( w http.ResponseWriter, req *http.Request) {
+func (r *renderer) Handle( w http.ResponseWriter, req *http.Request) {
 	page := pat.Param(req, "page")
 	r.HandlePage(page,w,req)
 }
-func (r *Renderer) HandleRoot( w http.ResponseWriter, req *http.Request) {
+func (r *renderer) HandleRoot( w http.ResponseWriter, req *http.Request) {
 	page := `index.html`
 	r.HandlePage(page,w,req)
 }
 
-func (r *Renderer) HandleStatus( w http.ResponseWriter, req *http.Request) {
+func (r *renderer) HandleStatus( w http.ResponseWriter, req *http.Request) {
 	r.render.JSON(w, http.StatusOK,  map[string]bool{"ok": true})
 }
 
-func (r *Renderer) HandlePage(page string, w http.ResponseWriter, req *http.Request) {
+func (r *renderer) HandlePage(page string, w http.ResponseWriter, req *http.Request) {
 	t, err := r.getTpl(page)
 	if err != nil {
 		fmt.Fprintf(w, "Page %s not found, err:[%+v]",page,err)
@@ -51,7 +51,7 @@ func (r *Renderer) HandlePage(page string, w http.ResponseWriter, req *http.Requ
 	t.Execute(w, r.Params)
 }
 
-func (r *Renderer)getTpl(name string) (t *template.Template, err error) {
+func (r *renderer)getTpl(name string) (t *template.Template, err error) {
 	r.RLock()
 	t, ok := r.templateCache[name]
 	r.RUnlock()
