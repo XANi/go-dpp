@@ -4,7 +4,9 @@ import:
 - package: goji.io
   version: master
 - package: github.com/op/go-logging
+  version: master
 - package: github.com/smartystreets/goconvey/convey
+  version: master
 - package: gopkg.in/unrolled/render.v1
 - package: gopkg.in/yaml.v2
 - package: github.com/XANi/go-yamlcfg
