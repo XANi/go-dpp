@@ -1,0 +1,26 @@
+hash: 0a93e99319786de2f6480593e4a3f803f556616da94aeaf5fda496d6818b9cdb
+updated: 2016-12-18T14:54:37.108407125+01:00
+imports:
+- name: github.com/op/go-logging
+  version: 970db520ece77730c7e4724c61121037378659d9
+- name: github.com/smartystreets/goconvey
+  version: 3c2572876754c4669ae7417b219f0b30a29b32c7
+  subpackages:
+  - convey
+- name: github.com/XANi/go-gitcli
+  version: 928d0a7e101f6cc17575d789bd7aaa41e66d9636
+- name: github.com/XANi/go-yamlcfg
+  version: 8135b9a83756d964925eda95868a5196e229df95
+- name: goji.io
+  version: 0d89ff54b2c18c9c4ba530e32496aef902d3c6cd
+  subpackages:
+  - internal
+  - pat
+  - pattern
+- name: gopkg.in/unrolled/render.v1
+  version: 526faf80cd4b305bb8134abea8d20d5ced74faa6
+- name: gopkg.in/yaml.v1
+  version: 9f9df34309c04878acc86042b16630b0f696e1de
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+testImports: []
