@@ -1,8 +1,0 @@
-gom 'github.com/op/go-logging'
-gom 'github.com/smartystreets/goconvey/convey'
-gom 'goji.io'
-gom 'gopkg.in/unrolled/render.v1'
-gom 'gopkg.in/yaml.v2'
-gom 'github.com/XANi/go-yamlcfg'
-gom 'github.com/XANi/go-gitcli'
-gom 'github.com/XANi/go-dpp'

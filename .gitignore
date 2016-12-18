@@ -9,6 +9,7 @@
 DEADJOE
 # compiled files
 _vendor/
+vendor/
 *\.test
 tags
 TAGS

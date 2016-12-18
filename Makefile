@@ -1,15 +1,20 @@
 # generate version number
 version=$(shell git describe --tags --long --always|sed 's/^v//')
 
-all: dep
-	gom exec go build  -ldflags "-X main.version=$(version)" dpp.go
+all: glide.lock vendor
+	go build  -ldflags "-X main.version=$(version)" dpp.go
 	go fmt
 
 compile:
-	gom exec go build  -ldflags "-X main.version=$(version)" dpp.go
+	go build  -ldflags "-X main.version=$(version)" dpp.go
 
-dep:
-	gom install
+vendor: glide.lock
+	glide install && touch vendor
+glide.lock: glide.yaml
+	glide update && touch glide.lock
+glide.yaml:
+build:
+	go build  -ldflags "-X main.version=$(version)" dpp.go
 
 version:
 	@echo $(version)
