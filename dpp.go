@@ -19,7 +19,7 @@ var version string
 var log = logging.MustGetLogger("main")
 var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05}%{color:reset}%{color} [%{level:.1s}] %{shortpkg}%{color:reset} %{message}")
 var stdout_debug_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.99Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
-var listenAddr = "127.0.0.1:3002"
+
 var exit = make(chan bool)
 
 func main() {
@@ -37,6 +37,7 @@ func main() {
 	}
 	cfg := config.Config{
 		RepoPollInterval: 600,
+		ListenAddr:       "127.0.0.1:3002",
 		Puppet: config.PuppetInterval{
 			StartWait:       60,
 			ScheduleRun:     3600,
@@ -60,8 +61,8 @@ func main() {
 	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
 	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
 	mux.HandleFunc(pat.Get("/"), renderer.HandleRoot)
-	log.Infof("Listening on %s", listenAddr)
-	go http.ListenAndServe(listenAddr, mux)
+	log.Infof("Listening on %s", cfg.ListenAddr)
+	go http.ListenAndServe(cfg.ListenAddr, mux)
 
 	// prepare paths
 	log.Infof("%+v", cfg.UseRepos)
@@ -75,9 +76,13 @@ func main() {
 	}
 	log.Errorf("%+v", modulePath)
 	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
-	log.Info(err)
+	if err != nil {
+		log.Panicf("Error while starting puppet: %s", err)
+	}
 	r, err := overlord.New(&cfg)
-	_ = r
+	if err != nil {
+		log.Panicf("Error while starting overlord: %s", err)
+	}
 	go func() {
 		for {
 			log.Noticef("updating repos")
