@@ -54,26 +54,8 @@ func main() {
 	if err != nil {
 		log.Errorf("starting web server failed with: %s", err)
 	}
-
 	log.Infof("Listening on %s", cfg.ListenAddr)
-	go web.Listen()
-
-	// prepare paths
-	log.Infof("%+v", cfg.UseRepos)
-	// TODO create parent
-	modulePath := make([]string, len(cfg.UseRepos))
-	repoPath := make(map[string]string, len(cfg.UseRepos))
-	for i, k := range cfg.UseRepos {
-		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
-		repoPath[k] = cfg.RepoDir + "/" + k
-
-	}
-
-	log.Errorf("%+v", modulePath)
-	pup, err := puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
-	if err != nil {
-		log.Panicf("Error while starting puppet: %s", err)
-	}
+	web.Listen()
 	r, err := overlord.New(&cfg)
 	if err != nil {
 		log.Panicf("Error while starting overlord: %s", err)

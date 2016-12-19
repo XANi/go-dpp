@@ -24,6 +24,7 @@ func New(c *config.Config) (*Web, error) {
 		return nil, err
 	}
 	w.r = r
+	w.cfg = c
 	mux := goji.NewMux()
 	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
 	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
@@ -31,6 +32,8 @@ func New(c *config.Config) (*Web, error) {
 	return &w, err
 }
 
-func (w *Web) Listen() error {
-	return http.ListenAndServe(w.cfg.ListenAddr, w.mux)
+func (w *Web) Listen() {
+	go func() {
+		log.Errorf("Error starting listener: %s", http.ListenAndServe(w.cfg.ListenAddr, w.mux))
+	}()
 }

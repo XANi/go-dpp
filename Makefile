@@ -3,7 +3,7 @@ version=$(shell git describe --tags --long --always|sed 's/^v//')
 
 all: glide.lock vendor
 	go build  -ldflags "-X main.version=$(version)" dpp.go
-	go fmt
+	-go fmt
 
 compile:
 	go build  -ldflags "-X main.version=$(version)" dpp.go

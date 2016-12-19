@@ -3,6 +3,7 @@ package overlord
 import (
 	"github.com/op/go-logging"
 	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-dpp/repo"
 	"sync"
 )
@@ -12,6 +13,7 @@ var log = logging.MustGetLogger("main")
 type Overlord struct {
 	cfg *config.Config
 	repos map[string]*repo.Repo
+	puppet *puppet.Puppet
 	repoUpdateLock sync.WaitGroup
 	sync.Mutex
 }
@@ -26,11 +28,10 @@ func New(cfg *config.Config)  (o *Overlord, err error) {
 
 	for i, repoName := range cfg.UseRepos {
 		if _, ok := cfg.Repo[repoName]; !ok {
-			log.Errorf("Repo %s specified to use but there is no definition of it! Skipping")
+			log.Errorf("Repo %s specified to use but there is no definition of it! Skipping", repoName)
+			if cfg.KillOnBadConfig { log.Panicf("incorrect config, failing") }
 		}
-		if cfg.KillOnBadConfig {
-			log.Panicf("incorrect config, failing")
-		}
+
 		modulePath[i] = cfg.RepoDir + "/" + repoName + "/puppet/modules"
 		repoPath[repoName] = cfg.RepoDir + "/" + repoName
 		repoCfg := repo.Config{
@@ -46,6 +47,18 @@ func New(cfg *config.Config)  (o *Overlord, err error) {
 	}
 	return &overlord, err
 }
+
+func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
+	modulePath := make([]string, len(cfg.UseRepos))
+	repoPath := make(map[string]string, len(cfg.UseRepos))
+	for i, k := range cfg.UseRepos {
+		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
+		repoPath[k] = cfg.RepoDir + "/" + k
+	}
+	log.Debugf("Puppet module path: %+v", modulePath)
+	return puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
+}
+
 
 func (o *Overlord)Update() error {
 	var wg sync.WaitGroup
