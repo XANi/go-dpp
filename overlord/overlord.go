@@ -24,6 +24,8 @@ func New(cfg *config.Config)  (o *Overlord, err error) {
 	repoPath := make(map[string]string, len(cfg.UseRepos))
 	overlord.cfg = cfg
 	overlord.repos = make(map[string]*repo.Repo)
+	overlord.puppet, err = initPuppet(cfg)
+	if err != nil { return nil, err}
 
 
 	for i, repoName := range cfg.UseRepos {
@@ -56,9 +58,12 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 		repoPath[k] = cfg.RepoDir + "/" + k
 	}
 	log.Debugf("Puppet module path: %+v", modulePath)
-	return puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/site.pp")
+	return puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/")
 }
 
+func (o *Overlord)Run() {
+	o.puppet.Run()
+}
 
 func (o *Overlord)Update() error {
 	var wg sync.WaitGroup

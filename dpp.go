@@ -6,7 +6,6 @@ import (
 	//	"golang.org/x/net/context"
 	"github.com/XANi/go-dpp/config"
 	"github.com/XANi/go-dpp/overlord"
-	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-dpp/web"
 	"github.com/XANi/go-yamlcfg"
 	"time"
@@ -69,9 +68,7 @@ func main() {
 	}()
 	go func() {
 		for {
-			r.Lock()
-			pup.Run()
-			r.Unlock()
+			r.Run()
 			time.Sleep(time.Second * time.Duration(cfg.Puppet.ScheduleRun))
 		}
 	}()

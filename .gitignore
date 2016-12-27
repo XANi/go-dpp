@@ -19,6 +19,8 @@ TAGS
 *.a
 *.so
 dpp
+dpp.arm
+dpp.arm64
 .rnd
 
 # various output files
