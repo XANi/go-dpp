@@ -1,5 +1,5 @@
-hash: 0a93e99319786de2f6480593e4a3f803f556616da94aeaf5fda496d6818b9cdb
-updated: 2016-12-18T14:54:37.108407125+01:00
+hash: b74270b737185580ec046a9b5a9328018f6cd4d6b173b7f8b12f2545109f45d9
+updated: 2017-01-04T23:44:26.500097226+01:00
 imports:
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
@@ -8,7 +8,9 @@ imports:
   subpackages:
   - convey
 - name: github.com/XANi/go-gitcli
-  version: 928d0a7e101f6cc17575d789bd7aaa41e66d9636
+  version: 646ee2e1709d4cdd8e9b316da2a9b157df7f86d9
+- name: github.com/XANi/go-gpgcli
+  version: 535a9efec3cb50ace1d0fea52a515a876cf1b590
 - name: github.com/XANi/go-yamlcfg
   version: 8135b9a83756d964925eda95868a5196e229df95
 - name: goji.io
