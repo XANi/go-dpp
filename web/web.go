@@ -25,10 +25,10 @@ func New(c *config.Config) (*Web, error) {
 	}
 	w.r = r
 	w.cfg = c
-	mux := goji.NewMux()
-	mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
-	mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
-	mux.HandleFunc(pat.Get("/"), w.r.HandleRoot)
+	w.mux = goji.NewMux()
+	w.mux.Handle(pat.Get("/static/*"), http.StripPrefix("/static", http.FileServer(http.Dir(`public/static`))))
+	w.mux.Handle(pat.Get("/apidoc/*"), http.StripPrefix("/apidoc", http.FileServer(http.Dir(`public/apidoc`))))
+	w.mux.HandleFunc(pat.Get("/"), w.r.HandleRoot)
 	return &w, err
 }
 
