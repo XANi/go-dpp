@@ -43,6 +43,7 @@ func main() {
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
 		log.Errorf("Config error: %+v", err)
+		os.Exit(1)
 	}
 	if cfg.Debug {
 		stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_debug_log_format)
