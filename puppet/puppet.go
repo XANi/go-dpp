@@ -46,7 +46,7 @@ func (p *Puppet)Run() (err error) {
 	go p.logStderr(stderr)
 	p.ioLock.Wait()
 	log.Notice("Puppet run ended")
-	return err
+	return cmd.Wait()
 }
 
 func(p *Puppet) logStdout(r io.Reader) {
