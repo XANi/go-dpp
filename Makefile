@@ -9,9 +9,10 @@ all: glide.lock vendor
 static: glide.lock vendor
 	go build -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).static $(binfile).go
 
-arm:
+arch:
 	GOARCH=arm go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).arm $(binfile).go
-	GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).arm64 $(binfile).go
+	GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).aarch64 $(binfile).go
+	GOARCH=amd64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).amd64 $(binfile).go
 clean:
 	rm -rf vendor
 vendor: glide.lock

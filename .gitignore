@@ -20,7 +20,8 @@ TAGS
 *.so
 dpp
 dpp.arm
-dpp.arm64
+dpp.amd64
+dpp.aarch64
 .rnd
 
 # various output files
