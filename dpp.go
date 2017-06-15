@@ -2,9 +2,11 @@ package main
 
 import (
 	"github.com/op/go-logging"
+	"github.com/urfave/cli"
 	"os"
 	//	"golang.org/x/net/context"
 	"github.com/XANi/go-dpp/config"
+	"github.com/XANi/go-dpp/deploy"
 	"github.com/XANi/go-dpp/overlord"
 	"github.com/XANi/go-dpp/web"
 	"github.com/XANi/go-yamlcfg"
@@ -22,7 +24,6 @@ func main() {
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_log_format)
 	logging.SetBackend(stderrFormatter)
-	log.Info("Starting app")
 	log.Debugf("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
@@ -39,6 +40,38 @@ func main() {
 			MinimumInterval: 300,
 		},
 	}
+	app := cli.NewApp()
+	app.Name = "greet"
+	app.Usage = "fight the loneliness!"
+	app.Action = func(c *cli.Context) error {
+		log.Warning("Hello friend!")
+		return nil
+	}
+	app.Commands = []cli.Command{
+		{
+			Name:    "package",
+			Aliases: []string{"p"},
+			Usage:   "prepare deploy package",
+			Action: func(c *cli.Context) error {
+				out := `/tmp/dpp.tar.gz`
+				log.Noticef("Preparing deploy package in %s", out)
+				d, err := deploy.NewDeployer(deploy.Config{})
+				if err != nil {
+					log.Errorf("deploy config error: %s", err)
+					os.Exit(1)
+				}
+				err = d.PrepareDeployPackage(out)
+				if err != nil {
+					log.Errorf("packaging error: %s", err)
+					os.Exit(1)
+				}
+				log.Noticef("deploy prepared")
+				os.Exit(0)
+				return nil
+			},
+		},
+	}
+	app.Run(os.Args)
 
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
@@ -76,3 +109,8 @@ func main() {
 	e := <-exit
 	_ = e
 }
+
+// deployOut := `/tmp/dpp.tar.gz`
+// log.Noticef("Preparing deploy package in %s", deployOut)
+// d, errd := deploy.NewDeployer(deploy.Config{})
+// log.Warningf("deploy prepared: %s | %s", d.PrepareDeployPackage(deployOut), errd)

@@ -1,12 +1,14 @@
-hash: 0bf89ffad2a84966ff5a7356641156fa39fb40f478509eebd01b47470ccd096b
-updated: 2017-01-04T23:50:43.642023065+01:00
+hash: f058a900e3578aa117ac48c74b76f7099d82e21462c90c46a636cf6f54f9ed0d
+updated: 2017-06-15T15:22:22.599252877+02:00
 imports:
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
 - name: github.com/smartystreets/goconvey
-  version: 3c2572876754c4669ae7417b219f0b30a29b32c7
+  version: 9e8dc3f972df6c8fcc0375ef492c24d0bb204857
   subpackages:
   - convey
+- name: github.com/urfave/cli
+  version: cf33a9befefdd6c6ea1a236ab6d546e797a62cbf
 - name: github.com/XANi/go-gitcli
   version: b063a6525a920161461ad87d6fdd5598ece6e68c
 - name: github.com/XANi/go-gpgcli
