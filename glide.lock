@@ -1,5 +1,5 @@
-hash: 4557441576b7600636680977437db39790c9a6b1ae99479ef6c1c50f1ac8f9bc
-updated: 2017-07-12T13:26:13.390374907+02:00
+hash: b80f5944c6c8385d6bb634f161c773fae8ec8eb4923e94c95f1bbd063bc6ea90
+updated: 2017-07-12T13:43:14.893260149+02:00
 imports:
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
@@ -9,17 +9,8 @@ imports:
   - convey
 - name: github.com/urfave/cli
   version: 4b90d79a682b4bf685762c7452db20f2a676ecb2
-- name: github.com/XANi/go-dpp
-  version: d5506a525476fa4622518b17e5e30c24efa70816
-  subpackages:
-  - config
-  - deploy
-  - overlord
-  - web
-  - puppet
-  - repo
 - name: github.com/XANi/go-gitcli
-  version: 44c69416139d1224a5bc343021403a8cad43e842
+  version: 5b123132550b4889efab498c6afd8de1a5f294fd
 - name: github.com/XANi/go-gpgcli
   version: 535a9efec3cb50ace1d0fea52a515a876cf1b590
 - name: github.com/XANi/go-yamlcfg
