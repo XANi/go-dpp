@@ -1,5 +1,5 @@
-hash: f058a900e3578aa117ac48c74b76f7099d82e21462c90c46a636cf6f54f9ed0d
-updated: 2017-06-15T15:22:22.599252877+02:00
+hash: 4557441576b7600636680977437db39790c9a6b1ae99479ef6c1c50f1ac8f9bc
+updated: 2017-07-12T13:26:13.390374907+02:00
 imports:
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
@@ -8,23 +8,32 @@ imports:
   subpackages:
   - convey
 - name: github.com/urfave/cli
-  version: cf33a9befefdd6c6ea1a236ab6d546e797a62cbf
+  version: 4b90d79a682b4bf685762c7452db20f2a676ecb2
+- name: github.com/XANi/go-dpp
+  version: d5506a525476fa4622518b17e5e30c24efa70816
+  subpackages:
+  - config
+  - deploy
+  - overlord
+  - web
+  - puppet
+  - repo
 - name: github.com/XANi/go-gitcli
-  version: b063a6525a920161461ad87d6fdd5598ece6e68c
+  version: 44c69416139d1224a5bc343021403a8cad43e842
 - name: github.com/XANi/go-gpgcli
   version: 535a9efec3cb50ace1d0fea52a515a876cf1b590
 - name: github.com/XANi/go-yamlcfg
-  version: 8135b9a83756d964925eda95868a5196e229df95
+  version: b0cc432c2ad93ba5fe250b5afa9f8f99171fcdd2
 - name: goji.io
   version: 0d89ff54b2c18c9c4ba530e32496aef902d3c6cd
   subpackages:
-  - internal
   - pat
+  - internal
   - pattern
 - name: gopkg.in/unrolled/render.v1
-  version: 526faf80cd4b305bb8134abea8d20d5ced74faa6
+  version: 1442182abc1e7397c8c0c862829bd00e9b670a96
 - name: gopkg.in/yaml.v1
   version: 9f9df34309c04878acc86042b16630b0f696e1de
 - name: gopkg.in/yaml.v2
-  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+  version: 1be3d31502d6eabc0dd7ce5b0daab022e14a5538
 testImports: []

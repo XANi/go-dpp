@@ -29,4 +29,5 @@ type Repository struct{
     Force bool `yaml:"force"`
     GpgKeys []string `yaml:"gpg"`
     PullUrl string `yaml:"pull_url"`
+	Debug bool `yaml:"debug"`
 }

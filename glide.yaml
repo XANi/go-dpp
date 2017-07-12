@@ -11,7 +11,7 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/XANi/go-yamlcfg
 - package: github.com/XANi/go-gitcli
-  version: origin/master
+  version: ">=0.0.2"
 - package: github.com/XANi/go-gpgcli
   version: origin/master
 - package: github.com/urfave/cli
