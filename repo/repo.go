@@ -24,6 +24,7 @@ type Config struct {
 	TargetDir string
 	GpgKeys []string
 	Force bool
+	Debug bool
 }
 func New(cfg Config) (r *Repo, err error) {
 	var repo Repo
@@ -44,6 +45,9 @@ func New(cfg Config) (r *Repo, err error) {
 		}
 	}
 	gitRepo := gitcli.New(cfg.TargetDir)
+	if cfg.Debug {
+		gitRepo.SetDebug(true)
+	}
 	err = gitRepo.Init()
 	if repo.gpg {
 		gitRepo.SetTrustedSignatures(repo.gpgKeys)

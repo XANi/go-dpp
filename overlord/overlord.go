@@ -43,6 +43,7 @@ func New(cfg *config.Config)  (o *Overlord, err error) {
 			Branch: cfg.Repo[repoName].Branch,
 			TargetDir: repoPath[repoName],
 			GpgKeys: cfg.Repo[repoName].GpgKeys,
+			Debug: cfg.Repo[repoName].Debug,
 		}
 		overlord.repos[repoName], err = repo.New(repoCfg)
 		if err != nil {
