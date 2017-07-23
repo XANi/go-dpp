@@ -5,6 +5,8 @@ import (
 	"github.com/XANi/go-dpp/config"
 	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-dpp/repo"
+	"os"
+	"syscall"
 	"sync"
 )
 
@@ -62,7 +64,20 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 }
 
 func (o *Overlord)Run() {
-	o.puppet.Run()
+	lockfilePath := o.cfg.WorkDir + "/puppet.lock"
+	lockfile, err := os.OpenFile(lockfilePath, os.O_APPEND +  os.O_CREATE, 0600)
+	if err == nil {
+		err := syscall.Flock(int(lockfile.Fd()), syscall.LOCK_EX + syscall.LOCK_NB)
+		if err == nil {
+			o.puppet.Run()
+		} else {
+			log.Errorf("Puppet run already in progress [lockfile: %s]", lockfilePath)
+		}
+		lockfile.Close()
+	} else {
+		log.Errorf("Can't open lock %s: %s, running anyway", lockfilePath, err)
+		o.puppet.Run()
+	}
 }
 
 func (o *Overlord)Update() error {

@@ -5,6 +5,7 @@ type Config struct {
 	UseRepos     []string              `yaml:"use_repos"`
 	ManifestFrom string                `yaml:"manifest_from"`
 	RepoDir      string                `yaml:"repo_dir"`
+	WorkDir      string                `yaml:"work_dir"`
 	ListenAddr   string                `yaml:"listen_addr"`
 	Debug        bool                  `yaml:"debug"`
 	RepoPollInterval int `yaml:"poll_interval"`
