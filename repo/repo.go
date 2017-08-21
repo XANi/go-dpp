@@ -4,8 +4,9 @@ import (
 	"github.com/XANi/go-gitcli"
 	"fmt"
 	"github.com/XANi/go-gpgcli"
+	"github.com/op/go-logging"
 )
-
+var log = logging.MustGetLogger("main")
 
 
 type Repo struct {
@@ -62,6 +63,7 @@ func New(cfg Config) (r *Repo, err error) {
 			err = gitRepo.Checkout("remotes/origin/master")
 			if err != nil {return nil, err}
 		} else {// fallback to last local version
+			log.Errorf("failed gpg-validating remotes/origin/%s:%s", "master", errOrigin)
 			if ok, err := gitRepo.VerifyCommit("master"); ok {
 				err = gitRepo.Checkout("heads/master")
 				if err != nil {return nil, err}
