@@ -8,6 +8,8 @@ import (
 	"os"
 	"syscall"
 	"sync"
+	"io/ioutil"
+	"strings"
 )
 
 var log = logging.MustGetLogger("main")
@@ -61,6 +63,19 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 		repoPath[k] = cfg.RepoDir + "/" + k
 	}
 	log.Debugf("Puppet module path: %+v", modulePath)
+	if _, err := os.Stat("/etc/facter/facts.d"); os.IsNotExist(err) {
+		log.Notice("Creating /etc/facter/facts.d")
+		err := os.MkdirAll("/etc/facter/facts.d", 0700)
+		if err != nil {
+			log.Warningf("Error while creating /etc/facter/facts.d: %s", err)
+		}
+	}
+	log.Debug("creating fact puppet_basemodulepath with current module path")
+	path := []byte("puppet_basemodulepath=" + strings.Join(modulePath,":") + "\n")
+	err := ioutil.WriteFile("/etc/facter/facts.d/puppet_basemodulepath.txt", path, 0644)
+	if err != nil {
+		log.Errorf("can't create fact fil for basemodulepath: %s", err)
+	}
 	return puppet.New(modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/")
 }
 
