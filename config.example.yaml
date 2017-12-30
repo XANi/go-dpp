@@ -19,6 +19,7 @@ use_repos:
 # which repo should be used to source manifest
 manifest_from: private
 
+
 # repo dir is work_dir + /repos by default
 # repo_dir: /var/lib/dpp/repos
 work_dir: /var/lib/dpp

@@ -19,36 +19,21 @@ var version string
 var log = logging.MustGetLogger("main")
 var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05}%{color:reset}%{color} [%{level:.1s}] %{shortpkg}%{color:reset} %{message}")
 var stdout_debug_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.99Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
+var stderrBackend = logging.NewLogBackend(os.Stderr, "", 0)
 
 var exit = make(chan bool)
 var runPuppet = make(chan bool, 1)
 
 func main() {
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_log_format)
 	logging.SetBackend(stderrFormatter)
-	log.Debugf("version: %s", version)
-	cfgFiles := []string{
-		"$HOME/.config/dpp/cnf.yaml",
-		"/etc/dpp/config.yaml",
-		"./cfg/dpp.conf",
-		"./cfg/dpp.default.conf",
-	}
-	cfg := config.Config{
-		RepoPollInterval: 600,
-		WorkDir:          "/var/lib/dpp",
-		ListenAddr:       "127.0.0.1:3002",
-		Puppet: config.PuppetInterval{
-			StartWait:       60,
-			ScheduleRun:     3600,
-			MinimumInterval: 300,
-		},
-	}
 	app := cli.NewApp()
-	app.Name = "greet"
-	app.Usage = "fight the loneliness!"
+	app.Name = "DPP"
+	app.Usage = "Distributed puppet runner"
+	app.Version = version
 	app.Action = func(c *cli.Context) error {
-		log.Warning("Hello friend!")
+		MainLoop()
+		os.Exit(0)
 		return nil
 	}
 	app.Commands = []cli.Command{
@@ -76,6 +61,27 @@ func main() {
 		},
 	}
 	app.Run(os.Args)
+
+}
+
+func MainLoop() {
+	log.Debugf("version: %s", version)
+	cfgFiles := []string{
+		"$HOME/.config/dpp/cnf.yaml",
+		"/etc/dpp/config.yaml",
+		"./cfg/dpp.conf",
+		"./cfg/dpp.default.conf",
+	}
+	cfg := config.Config{
+		RepoPollInterval: 600,
+		WorkDir:          "/var/lib/dpp",
+		ListenAddr:       "127.0.0.1:3002",
+		Puppet: config.PuppetInterval{
+			StartWait:       60,
+			ScheduleRun:     3600,
+			MinimumInterval: 300,
+		},
+	}
 
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {

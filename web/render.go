@@ -68,6 +68,4 @@ func (r *renderer)getTpl(name string) (t *template.Template, err error) {
 		}
 	}
 	return t,err
-
-
 }
