@@ -22,11 +22,8 @@ Todo:
 
 ## Building
 
-Install [glide](https://github.com/Masterminds/glide) then
-
     make
 
-It is usually go-gettable too but I can't guarantee it working consistently.
 Then put [example config](config.example.yaml) in `/etc/dpp/config.yaml` and run it
 
 ## How it works
