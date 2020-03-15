@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/XANi/go-dpp/mq"
 	"github.com/op/go-logging"
 	"github.com/urfave/cli"
 	"os"
@@ -96,6 +97,8 @@ func MainLoop() {
 		logging.SetBackend(stderrFormatter)
 	}
 	log.Debugf("Config: %+v", cfg)
+	hostname, _ := os.Hostname()
+	mq.New(hostname, cfg.MQ)
 	web, err := web.New(&cfg)
 	if err != nil {
 		log.Errorf("starting web server failed with: %s", err)

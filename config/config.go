@@ -1,5 +1,7 @@
 package config
 
+import "github.com/XANi/go-dpp/mq"
+
 type Config struct {
 	Repo         map[string]Repository `yaml:"repo"`
 	UseRepos     []string              `yaml:"use_repos"`
@@ -16,6 +18,7 @@ type Config struct {
 	// that changes it to "die if something is wrong"
 	Puppet PuppetInterval `yaml:"puppet"`
 	KillOnBadConfig bool `yaml:"kill_on_bad_config"`
+	MQ mq.Config `yaml:"mq"`
 }
 
 type PuppetInterval struct {
