@@ -1,9 +1,11 @@
 package main
 
 import (
+	"github.com/XANi/go-dpp/common"
 	"github.com/XANi/go-dpp/mq"
 	"github.com/op/go-logging"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -97,8 +99,14 @@ func MainLoop() {
 		logging.SetBackend(stderrFormatter)
 	}
 	log.Debugf("Config: %+v", cfg)
-	hostname, _ := os.Hostname()
-	mq.New(hostname, cfg.MQ)
+	runtime := common.Runtime{Logger: zap.S()}
+	mq, err := mq.New(cfg.MQ, runtime)
+	_ = mq
+	if err != nil {
+		log.Errorf("mq start failed: %s", err)
+	} else {
+		log.Errorf("connected to MQ at %s, heartbeats at", cfg.MQ, mq.Node.HeartbeatPath())
+	}
 	web, err := web.New(&cfg)
 	if err != nil {
 		log.Errorf("starting web server failed with: %s", err)

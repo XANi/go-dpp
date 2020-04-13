@@ -1,36 +1,39 @@
 package mq
 
 import (
+	"github.com/XANi/go-dpp/common"
 	"github.com/zerosvc/go-zerosvc"
 	"time"
 )
 
 type Config struct {
 	Address string `yaml:"address"`
+	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"`
+
 
 }
 
 
 type MQ struct {
 	Info map[string]interface{}
+	Node *zerosvc.Node
 }
 
-func New(nodeName string, cfg Config) *MQ {
-	tr := zerosvc.NewTransport(zerosvc.TransportMQTT,cfg.Address,zerosvc.TransportMQTTConfig{})
-	node := zerosvc.NewNode(nodeName)
-	tr.Connect()
-	node.SetTransport(tr)
-	e := zerosvc.Event{
-		ReplyTo:     "",
-		Redelivered: false,
-		NeedsAck:    false,
-		Headers: nil,
-		Body:        []byte("heartbeat"),
+func New(cfg Config, runtime common.Runtime) (*MQ, error) {
+	if cfg.HeartbeatInterval == 0 {
+		cfg.HeartbeatInterval = time.Minute * 10
 	}
-	e.Prepare()
-	go func() {
-		node.SendEvent("dpp/heartbeat/"+nodeName, e)
-		time.Sleep(time.Minute*10)
-	}()
-	return &MQ{}
+	nodeName := zerosvc.GetFQDN() + "@dpp"
+	node,err := zerosvc.New(zerosvc.Config{
+		NodeName:     nodeName,
+		Transport:     zerosvc.MQTTTransport(cfg.Address,zerosvc.TransportMQTTConfig{}),
+		AutoHeartbeat: true,
+		AutoSigner: func(new []byte) (old []byte) { return []byte{}},
+	})
+	if err != nil {
+		return nil,err
+	}
+	var mq MQ
+	mq.Node = node
+	return &mq,nil
 }
