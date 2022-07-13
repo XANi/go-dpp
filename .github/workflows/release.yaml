@@ -1,0 +1,76 @@
+---
+name: Release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+    test:
+      runs-on: ubuntu-22.04
+      steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - uses: actions/checkout@v3
+      - run: go test ./...
+    build:
+      runs-on: ubuntu-22.04
+      steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - uses: actions/checkout@v3
+      - run: make arch
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release amd64
+        id: upload-release-amd64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.amd64
+          asset_name: dpp.amd64
+          asset_content_type: application/x-executable
+      - name: Upload Release 386
+        id: upload-release-386
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.386
+          asset_name: dpp.386
+          asset_content_type: application/x-executable
+      - name: Upload Release arm
+        id: upload-release-arm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.arm
+          asset_name: dpp.arm
+          asset_content_type: application/x-executable
+      - name: Upload Release aarch64
+        id: upload-release-aarch
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.aarch64
+          asset_name: dpp.aarch64
+          asset_content_type: application/x-executable
+

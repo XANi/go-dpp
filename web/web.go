@@ -1,21 +1,17 @@
 package web
 
-
 import (
+	"github.com/XANi/go-dpp/config"
 	"goji.io"
 	"goji.io/pat"
-	"github.com/XANi/go-dpp/config"
 	"net/http"
 )
 
-
 type Web struct {
 	cfg *config.Config
-	r *renderer
+	r   *renderer
 	mux *goji.Mux
-
 }
-
 
 func New(c *config.Config) (*Web, error) {
 	var w Web

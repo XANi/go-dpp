@@ -1,15 +1,15 @@
 package deploy
 
 import (
-//	"github.com/op/go-logging"
+	//	"github.com/op/go-logging"
 	"archive/tar"
+	"compress/gzip"
 	"io/ioutil"
 	"os"
-	"compress/gzip"
 	"time"
 )
-//var log = logging.MustGetLogger("main")
 
+//var log = logging.MustGetLogger("main")
 
 type Config struct {
 	Files []string
@@ -19,8 +19,7 @@ type deployer struct {
 	cfg *Config
 }
 
-
-func NewDeployer(c Config) (*deployer, error)  {
+func NewDeployer(c Config) (*deployer, error) {
 	var d deployer
 	if len(c.Files) < 1 {
 		c.Files = []string{
@@ -30,15 +29,16 @@ func NewDeployer(c Config) (*deployer, error)  {
 		}
 	}
 	d.cfg = &c
-	return &d, nil;
+	return &d, nil
 }
-
 
 // PrepareDeployPackage packs all required files into a package
 func (d *deployer) PrepareDeployPackage(outfile string) error {
 	// Create a buffer to write our archive to.
-	f, err := os.Create(outfile);
-	if err != nil {return err}
+	f, err := os.Create(outfile)
+	if err != nil {
+		return err
+	}
 	gw := gzip.NewWriter(f)
 	// Create a new tar archive.
 	tw := tar.NewWriter(gw)
@@ -49,14 +49,14 @@ func (d *deployer) PrepareDeployPackage(outfile string) error {
 		}
 		ts := time.Now()
 		hdr := &tar.Header{
-			Name: filename,
-			Mode: 0600,
-			Size: int64(len(body)),
+			Name:       filename,
+			Mode:       0600,
+			Size:       int64(len(body)),
 			AccessTime: ts,
-			ModTime: ts,
+			ModTime:    ts,
 			ChangeTime: ts,
-			Uname: `root`,
-			Gname: `root`,
+			Uname:      `root`,
+			Gname:      `root`,
 		}
 		if err := tw.WriteHeader(hdr); err != nil {
 			return err
