@@ -3,7 +3,7 @@ module github.com/XANi/go-dpp
 go 1.14
 
 require (
-	github.com/XANi/go-gitcli v0.0.2
+	github.com/XANi/go-gitcli v0.0.3
 	github.com/XANi/go-gpgcli v0.0.0-20170104222322-535a9efec3cb
 	github.com/XANi/go-yamlcfg v0.0.1
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385 // indirect

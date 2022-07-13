@@ -55,6 +55,7 @@ func New(cfg Config) (r *Repo, err error) {
 		gitRepo.SetTrustedSignatures(repo.gpgKeys)
 	}
 	if err != nil {
+		gitRepo.HardReset() //dealing with index smaller than expected
 		return nil, err
 	}
 	err = gitRepo.SetRemote("origin", cfg.PullAddress)
@@ -63,6 +64,7 @@ func New(cfg Config) (r *Repo, err error) {
 	}
 	err = gitRepo.Fetch("origin")
 	if err != nil {
+		gitRepo.HardReset() //dealing with index smaller than expected
 		// we do not err out here coz we want it to work offline too
 		log.Errorf("error fetching[%s]", cfg.TargetDir, err)
 	}

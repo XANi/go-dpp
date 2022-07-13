@@ -4,7 +4,7 @@ binfile=dpp
 
 all:
 	mkdir -p bin
-	go build -ldflags "-X main.version=$(version)" -o bin/$(binfile) $(binfile).go
+	CGO_ENABLED=0 go build -ldflags "-X main.version=$(version)" -o bin/$(binfile) $(binfile).go
 	-@go fmt
 
 static:
@@ -12,9 +12,9 @@ static:
 
 arch:
 	mkdir -p bin
-	GOARCH=arm go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).arm $(binfile).go
-	GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).aarch64 $(binfile).go
-	GOARCH=amd64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).amd64 $(binfile).go
-	GOARCH=386 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).386 $(binfile).go
+	CGO_ENABLED=0 GOARCH=arm go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).arm $(binfile).go
+	CGO_ENABLED=0 GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).aarch64 $(binfile).go
+	CGO_ENABLED=0 GOARCH=amd64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).amd64 $(binfile).go
+	CGO_ENABLED=0 GOARCH=386 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).386 $(binfile).go
 version:
 	@echo $(version)
