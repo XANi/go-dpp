@@ -22,14 +22,14 @@ jobs:
         with:
           go-version: 1.18
       - uses: actions/checkout@v3
-      - run: make
-      - name: Upload a Build Artifact
+      - run: make arch
+      - name: dpp.amd64
         uses: actions/upload-artifact@v3.1.0
         with:
           # Artifact name
           # name: # optional, default is artifact
           # A file, directory or wildcard pattern that describes what to upload
-          path: bin/*
+          path: bin/dpp amd64
           # The desired behavior if no files are found using the provided path.
 #  Available Options:
 #    warn: Output a warning but do not fail the action
