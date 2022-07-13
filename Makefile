@@ -3,16 +3,18 @@ version=$(shell git describe --tags --long --always|sed 's/^v//')
 binfile=dpp
 
 all:
-	go build -ldflags "-X main.version=$(version)" $(binfile).go
+	mkdir -p bin
+	go build -ldflags "-X main.version=$(version)" -o bin/$(binfile) $(binfile).go
 	-@go fmt
 
 static:
-	go build -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).static $(binfile).go
+	go build -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).static $(binfile).go
 
 arch:
-	GOARCH=arm go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).arm $(binfile).go
-	GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).aarch64 $(binfile).go
-	GOARCH=amd64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).amd64 $(binfile).go
-	GOARCH=386 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o $(binfile).386 $(binfile).go
+	mkdir -p bin
+	GOARCH=arm go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).arm $(binfile).go
+	GOARCH=arm64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).aarch64 $(binfile).go
+	GOARCH=amd64 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).amd64 $(binfile).go
+	GOARCH=386 go build  -ldflags "-X main.version=$(version) -extldflags \"-static\"" -o bin/$(binfile).386 $(binfile).go
 version:
 	@echo $(version)
