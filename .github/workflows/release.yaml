@@ -1,4 +1,6 @@
 ---
+name: Release
+
 on:
   push:
     # Sequence of patterns matched against refs/tags
@@ -31,7 +33,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
+      - name: Upload Release amd64
         id: upload-release-amd64
         uses: actions/upload-release-asset@v1
         env:
@@ -39,5 +41,36 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: bin/dpp.amd64
-          asset_name: dpp.amd46
+          asset_name: dpp.amd64
           asset_content_type: application/x-executable
+      - name: Upload Release 386
+        id: upload-release-386
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.386
+          asset_name: dpp.386
+          asset_content_type: application/x-executable
+      - name: Upload Release arm
+        id: upload-release-arm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.arm
+          asset_name: dpp.arm
+          asset_content_type: application/x-executable
+      - name: Upload Release arm64
+        id: upload-release-arm64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/dpp.arm64
+          asset_name: dpp.arm64
+          asset_content_type: application/x-executable
+
