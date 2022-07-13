@@ -22,6 +22,7 @@ dpp
 dpp.arm
 dpp.amd64
 dpp.aarch64
+dpp.386
 .rnd
 
 # various output files
