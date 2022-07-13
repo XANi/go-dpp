@@ -3,9 +3,8 @@ name: Release
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    - 'v*'
 jobs:
     test:
       runs-on: ubuntu-22.04
@@ -73,4 +72,14 @@ jobs:
           asset_path: bin/dpp.aarch64
           asset_name: dpp.aarch64
           asset_content_type: application/x-executable
+      - name: Upload checksum
+        id: upload-release-checksum
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/Checksum
+          asset_name: Checksum
+          asset_content_type: text/plain
 
