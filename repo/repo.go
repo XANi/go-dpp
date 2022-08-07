@@ -70,14 +70,14 @@ func New(cfg Config) (r *Repo, err error) {
 	}
 	if repo.gpg {
 		if ok, errOrigin := gitRepo.VerifyCommit("remotes/origin/master"); ok {
-			err = gitRepo.Checkout("remotes/origin/master")
+			err = gitRepo.Checkout("--force", "remotes/origin/master")
 			if err != nil {
 				return nil, err
 			}
 		} else { // fallback to last local version
 			log.Errorf("failed gpg-validating remotes/origin/%s:%s", "master", errOrigin)
 			if ok, err := gitRepo.VerifyCommit("master"); ok {
-				err = gitRepo.Checkout("heads/master")
+				err = gitRepo.Checkout("--force", "heads/master")
 				if err != nil {
 					return nil, err
 				}
@@ -86,7 +86,7 @@ func New(cfg Config) (r *Repo, err error) {
 			}
 		}
 	} else {
-		err = gitRepo.Checkout("remotes/origin/master")
+		err = gitRepo.Checkout("--force", "remotes/origin/master")
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +118,7 @@ func (r *Repo) Update() error {
 			return fmt.Errorf("error verifying commit: %s", err)
 		}
 	}
-	err = r.repo.Checkout("remotes/origin/master")
+	err = r.repo.Checkout("--force", "remotes/origin/master")
 	if err != nil {
 		return err
 	}
