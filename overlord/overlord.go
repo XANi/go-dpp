@@ -1,9 +1,11 @@
 package overlord
 
 import (
+	"fmt"
 	"github.com/XANi/go-dpp/config"
 	"github.com/XANi/go-dpp/puppet"
 	"github.com/XANi/go-dpp/repo"
+	"github.com/efigence/go-mon"
 	"github.com/op/go-logging"
 	"io/ioutil"
 	"os"
@@ -88,7 +90,20 @@ func (o *Overlord) Run() {
 	if err == nil {
 		err := syscall.Flock(int(lockfile.Fd()), syscall.LOCK_EX+syscall.LOCK_NB)
 		if err == nil {
-			o.puppet.Run()
+			err := o.puppet.Run()
+			if err != nil {
+				log.Errorf("err running puppet: %s", err)
+			}
+			success, summary, ts := o.puppet.LastRunStats()
+			if !success {
+				mon.GlobalStatus.Update(mon.StateCritical, "puppet run failed")
+			} else if v, ok := summary.Resources["failure"]; ok == true && v > 0 {
+				mon.GlobalStatus.Update(mon.StateWarning, fmt.Sprintf("failed resources: %d", v))
+			} else if v, ok := summary.Events["failure"]; ok == true && v > 0 {
+				mon.GlobalStatus.Update(mon.StateWarning, fmt.Sprintf("failed resources: %d", v))
+			} else {
+				mon.GlobalStatus.Update(mon.StateOk, fmt.Sprintf("last puppet run %s", ts.Format("2006-01-02 15:04")))
+			}
 		} else {
 			log.Errorf("Puppet run already in progress [lockfile: %s]", lockfilePath)
 		}

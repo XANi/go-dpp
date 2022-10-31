@@ -1,6 +1,9 @@
 package config
 
-import "github.com/XANi/go-dpp/mq"
+import (
+	"github.com/XANi/go-dpp/mq"
+	"github.com/XANi/go-dpp/web"
+)
 
 type Config struct {
 	Repo             map[string]Repository `yaml:"repo"`
@@ -8,7 +11,7 @@ type Config struct {
 	ManifestFrom     string                `yaml:"manifest_from"`
 	RepoDir          string                `yaml:"repo_dir"`
 	WorkDir          string                `yaml:"work_dir"`
-	ListenAddr       string                `yaml:"listen_addr"`
+	Web              *web.Config           `yaml:"web"`
 	Debug            bool                  `yaml:"debug"`
 	RepoPollInterval int                   `yaml:"poll_interval"`
 	Log              struct {

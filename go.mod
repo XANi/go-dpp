@@ -1,22 +1,53 @@
 module github.com/XANi/go-dpp
 
-go 1.14
+go 1.18
 
 require (
 	github.com/XANi/go-gitcli v0.0.3
 	github.com/XANi/go-gpgcli v0.0.0-20170104222322-535a9efec3cb
 	github.com/XANi/go-yamlcfg v0.0.1
-	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385 // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/efigence/go-mon v1.3.5
+	github.com/gin-contrib/zap v0.1.0
+	github.com/gin-gonic/gin v1.8.1
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
+	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli v0.0.0-20170706194625-4b90d79a682b
 	github.com/zerosvc/go-zerosvc v0.1.1
-	go.uber.org/zap v1.14.1
-	goji.io v2.0.0+incompatible
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/unrolled/render.v1 v1.0.0-20170605155936-1442182abc1e
+	go.uber.org/zap v1.23.0
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/benbjohnson/clock v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.2.0 // indirect
+	github.com/efigence/go-libs/ewma v0.0.1 // indirect
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-playground/locales v0.14.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-playground/validator/v10 v10.11.1 // indirect
+	github.com/goccy/go-json v0.9.11 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71 // indirect
+	github.com/ugorji/go/codec v1.2.7 // indirect
+	go.opentelemetry.io/otel v1.11.1 // indirect
+	go.opentelemetry.io/otel/trace v1.11.1 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
+	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 // replace github.com/zerosvc/go-zerosvc => /home/xani/src/my/go-zerosvc

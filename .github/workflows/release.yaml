@@ -13,7 +13,7 @@ jobs:
         with:
           go-version: 1.18
       - uses: actions/checkout@v3
-      - run: go test ./...
+      - run: go test -v ./...
     build:
       runs-on: ubuntu-22.04
       steps:
@@ -82,4 +82,3 @@ jobs:
           asset_path: bin/Checksum
           asset_name: Checksum
           asset_content_type: text/plain
-

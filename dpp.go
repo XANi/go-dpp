@@ -1,11 +1,12 @@
 package main
 
 import (
+	"embed"
 	"github.com/XANi/go-dpp/common"
 	"github.com/XANi/go-dpp/mq"
-	"github.com/op/go-logging"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,17 +20,53 @@ import (
 )
 
 var version string
-var log = logging.MustGetLogger("main")
-var stdout_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05}%{color:reset}%{color} [%{level:.1s}] %{shortpkg}%{color:reset} %{message}")
-var stdout_debug_log_format = logging.MustStringFormatter("%{color:bold}%{time:2006-01-02T15:04:05.99Z-07:00}%{color:reset}%{color} [%{level:.1s}] %{color:reset}%{shortpkg}[%{longfunc}] %{message}")
-var stderrBackend = logging.NewLogBackend(os.Stderr, "", 0)
 
 var exit = make(chan bool)
 var runPuppet = make(chan bool, 1)
+var debug = false
+var log *zap.SugaredLogger
+
+// /* embeds with all files, just dir/ ignores files starting with _ or .
+//go:embed static templates
+var embeddedWebContent embed.FS
+
+func init() {
+	consoleEncoderConfig := zap.NewDevelopmentEncoderConfig()
+	// naive systemd detection. Drop timestamp if running under it
+	if os.Getenv("INVOCATION_ID") != "" || os.Getenv("JOURNAL_STREAM") != "" {
+		consoleEncoderConfig.TimeKey = ""
+	}
+	consoleEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	consoleEncoder := zapcore.NewConsoleEncoder(consoleEncoderConfig)
+	consoleStderr := zapcore.Lock(os.Stderr)
+	_ = consoleStderr
+	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= zapcore.ErrorLevel
+	})
+	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return (lvl < zapcore.ErrorLevel) != (lvl == zapcore.DebugLevel && !debug)
+	})
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, os.Stderr, lowPriority),
+		zapcore.NewCore(consoleEncoder, os.Stderr, highPriority),
+	)
+	logger := zap.New(core)
+	if debug {
+		logger = logger.WithOptions(
+			zap.Development(),
+			zap.AddCaller(),
+			zap.AddStacktrace(highPriority),
+		)
+	} else {
+		logger = logger.WithOptions(
+			zap.AddCaller(),
+		)
+	}
+	log = logger.Sugar()
+
+}
 
 func main() {
-	stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_log_format)
-	logging.SetBackend(stderrFormatter)
 	app := cli.NewApp()
 	app.Name = "DPP"
 	app.Usage = "Distributed puppet runner"
@@ -46,7 +83,7 @@ func main() {
 			Usage:   "prepare deploy package",
 			Action: func(c *cli.Context) error {
 				out := `/tmp/dpp.tar.gz`
-				log.Noticef("Preparing deploy package in %s", out)
+				log.Infof("Preparing deploy package in %s", out)
 				d, err := deploy.NewDeployer(deploy.Config{})
 				if err != nil {
 					log.Errorf("deploy config error: %s", err)
@@ -57,7 +94,7 @@ func main() {
 					log.Errorf("packaging error: %s", err)
 					os.Exit(1)
 				}
-				log.Noticef("deploy prepared")
+				log.Infof("deploy prepared")
 				os.Exit(0)
 				return nil
 			},
@@ -78,7 +115,6 @@ func MainLoop() {
 	cfg := config.Config{
 		RepoPollInterval: 600,
 		WorkDir:          "/var/lib/dpp",
-		ListenAddr:       "127.0.0.1:3002",
 		Puppet: config.PuppetInterval{
 			StartWait:       60,
 			ScheduleRun:     3600,
@@ -94,10 +130,6 @@ func MainLoop() {
 	if len(cfg.RepoDir) < 1 {
 		cfg.RepoDir = cfg.WorkDir + "/repos"
 	}
-	if cfg.Debug {
-		stderrFormatter := logging.NewBackendFormatter(stderrBackend, stdout_debug_log_format)
-		logging.SetBackend(stderrFormatter)
-	}
 	log.Debugf("Config: %+v", cfg)
 	runtime := common.Runtime{Logger: zap.S()}
 	mq, err := mq.New(cfg.MQ, runtime)
@@ -107,19 +139,26 @@ func MainLoop() {
 	} else {
 		log.Errorf("connected to MQ at %s, heartbeats at", cfg.MQ, mq.Node.HeartbeatPath())
 	}
-	web, err := web.New(&cfg)
+	if cfg.Web != nil {
+		cfg.Web.Logger = log
+		w, err := web.New(*cfg.Web, embeddedWebContent)
+		if err != nil {
+			log.Errorf("error setting up web server", err)
+		}
+		go func() {
+			log.Errorf("error listening on web socket %s: %s", cfg.Web.ListenAddr, w.Run())
+		}()
+	}
 	if err != nil {
 		log.Errorf("starting web server failed with: %s", err)
 	}
-	log.Infof("Listening on %s", cfg.ListenAddr)
-	web.Listen()
 	r, err := overlord.New(&cfg)
 	if err != nil {
 		log.Panicf("Error while starting overlord: %s", err)
 	}
 	go func() {
 		for {
-			log.Noticef("updating repos")
+			log.Infof("updating repos")
 			r.Update()
 			time.Sleep(time.Second * time.Duration(cfg.RepoPollInterval))
 		}
@@ -141,13 +180,13 @@ func MainLoop() {
 	signal.Notify(signalUSR2, syscall.SIGUSR2)
 	go func() {
 		for range signalUSR1 {
-			log.Notice("Got SIGUSR1, queuing puppet run")
+			log.Info("Got SIGUSR1, queuing puppet run")
 			runPuppet <- true
 		}
 	}()
 	go func() {
 		for range signalUSR2 {
-			log.Notice("Got SIGUSR2, queuing repo update")
+			log.Info("Got SIGUSR2, queuing repo update")
 			r.Update()
 		}
 	}()
@@ -156,6 +195,6 @@ func MainLoop() {
 }
 
 // deployOut := `/tmp/dpp.tar.gz`
-// log.Noticef("Preparing deploy package in %s", deployOut)
+// log.Infof("Preparing deploy package in %s", deployOut)
 // d, errd := deploy.NewDeployer(deploy.Config{})
 // log.Warningf("deploy prepared: %s | %s", d.PrepareDeployPackage(deployOut), errd)
