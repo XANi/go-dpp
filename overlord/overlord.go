@@ -26,7 +26,6 @@ type Overlord struct {
 
 func New(cfg *config.Config) (o *Overlord, err error) {
 	var overlord Overlord
-	modulePath := make([]string, len(cfg.UseRepos))
 	repoPath := make(map[string]string, len(cfg.UseRepos))
 	overlord.cfg = cfg
 	overlord.repos = make(map[string]*repo.Repo)
@@ -34,16 +33,13 @@ func New(cfg *config.Config) (o *Overlord, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	for i, repoName := range cfg.UseRepos {
+	for _, repoName := range cfg.UseRepos {
 		if _, ok := cfg.Repo[repoName]; !ok {
 			log.Errorf("Repo %s specified to use but there is no definition of it! Skipping", repoName)
 			if cfg.KillOnBadConfig {
 				log.Panicf("incorrect config, failing")
 			}
 		}
-
-		modulePath[i] = cfg.RepoDir + "/" + repoName + "/puppet/modules"
 		repoPath[repoName] = cfg.RepoDir + "/" + repoName
 		repoCfg := repo.Config{
 			PullAddress: cfg.Repo[repoName].PullUrl,
@@ -66,6 +62,11 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 	for i, k := range cfg.UseRepos {
 		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
 		repoPath[k] = cfg.RepoDir + "/" + k
+	}
+	if len(cfg.ExtraModulePath) > 0 {
+		for _, r := range cfg.ExtraModulePath {
+			modulePath = append(modulePath, r)
+		}
 	}
 	log.Debugf("Puppet module path: %+v", modulePath)
 	if _, err := os.Stat("/etc/facter/facts.d"); os.IsNotExist(err) {
