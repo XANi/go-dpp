@@ -182,14 +182,17 @@ func MainLoop() {
 	signal.Notify(signalUSR2, syscall.SIGUSR2)
 	go func() {
 		for range signalUSR1 {
-			log.Info("Got SIGUSR1, queuing puppet run")
+			log.Info("Got SIGUSR1, queuing update and puppet run")
+			r.Update()
 			runPuppet <- true
 		}
 	}()
 	go func() {
 		for range signalUSR2 {
-			log.Info("Got SIGUSR2, queuing repo update")
-			r.Update()
+			log.Info("Got SIGUSR2, exiting after 5 minutes")
+			time.Sleep(time.Minute * 5)
+			os.Exit(0)
+
 		}
 	}()
 	e := <-exit
