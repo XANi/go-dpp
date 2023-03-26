@@ -132,6 +132,7 @@ func MainLoop() {
 	}
 	log.Debugf("Config: %+v", cfg)
 	runtime := common.Runtime{Logger: zap.S()}
+	cfg.MQ.Logger = log.Named("mq")
 	mq, err := mq.New(cfg.MQ, runtime)
 	_ = mq
 	if err != nil {
@@ -149,6 +150,7 @@ func MainLoop() {
 			log.Errorf("error listening on web socket %s: %s", cfg.Web.ListenAddr, w.Run())
 		}()
 	}
+	cfg.Logger = log
 	if err != nil {
 		log.Errorf("starting web server failed with: %s", err)
 	}

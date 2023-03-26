@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/XANi/go-dpp/mq"
 	"github.com/XANi/go-dpp/web"
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -20,9 +21,10 @@ type Config struct {
 	} `yaml:"log"`
 	// normally app continues if config errors are reasonably recoverable (so bad push can be fixed remotely
 	// that changes it to "die if something is wrong"
-	Puppet          PuppetInterval `yaml:"puppet"`
-	KillOnBadConfig bool           `yaml:"kill_on_bad_config"`
-	MQ              mq.Config      `yaml:"mq"`
+	Puppet          PuppetInterval     `yaml:"puppet"`
+	KillOnBadConfig bool               `yaml:"kill_on_bad_config"`
+	MQ              mq.Config          `yaml:"mq"`
+	Logger          *zap.SugaredLogger `yaml:"-"`
 }
 
 type PuppetInterval struct {

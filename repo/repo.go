@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"github.com/XANi/go-gitcli"
 	"github.com/XANi/go-gpgcli"
-	"github.com/op/go-logging"
+	"go.uber.org/zap"
 )
-
-var log = logging.MustGetLogger("main")
 
 type Repo struct {
 	branch  string
@@ -17,6 +15,7 @@ type Repo struct {
 	gpg     bool
 	gpgKeys []string
 	repo    *gitcli.Repo
+	l       *zap.SugaredLogger
 }
 
 type Config struct {
@@ -26,10 +25,12 @@ type Config struct {
 	GpgKeys     []string
 	Force       bool
 	Debug       bool
+	Logger      *zap.SugaredLogger
 }
 
 func New(cfg Config) (r *Repo, err error) {
 	var repo Repo
+	repo.l = cfg.Logger
 	// resolve fingerprints to their full length
 	if len(cfg.GpgKeys) > 0 {
 		repo.gpg = true
@@ -66,7 +67,7 @@ func New(cfg Config) (r *Repo, err error) {
 	if err != nil {
 		gitRepo.HardReset() //dealing with index smaller than expected
 		// we do not err out here coz we want it to work offline too
-		log.Errorf("error fetching[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error fetching[%s]", cfg.TargetDir, err)
 	}
 	if repo.gpg {
 		if ok, errOrigin := gitRepo.VerifyCommit("remotes/origin/master"); ok {
@@ -75,7 +76,7 @@ func New(cfg Config) (r *Repo, err error) {
 				return nil, err
 			}
 		} else { // fallback to last local version
-			log.Errorf("failed gpg-validating remotes/origin/%s:%s", "master", errOrigin)
+			repo.l.Errorf("failed gpg-validating remotes/origin/%s:%s", "master", errOrigin)
 			if ok, err := gitRepo.VerifyCommit("master"); ok {
 				err = gitRepo.Checkout("--force", "heads/master")
 				if err != nil {
@@ -97,11 +98,11 @@ func New(cfg Config) (r *Repo, err error) {
 	}
 	err = gitRepo.SubmoduleSync()
 	if err != nil {
-		log.Errorf("error syncing submodules[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error syncing submodules[%s]", cfg.TargetDir, err)
 	}
 	err = gitRepo.SubmoduleUpdate()
 	if err != nil {
-		log.Errorf("error updating submodules[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error updating submodules[%s]", cfg.TargetDir, err)
 		return nil, err
 	}
 	repo.repo = &gitRepo

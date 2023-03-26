@@ -2,7 +2,7 @@ package puppet
 
 import (
 	"fmt"
-	"github.com/op/go-logging"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
@@ -15,8 +15,6 @@ import (
 	"bufio"
 	"io"
 )
-
-var log = logging.MustGetLogger("main")
 
 const lastRunSummaryFile = "/var/lib/puppet/state/last_run_summary.yaml"
 
@@ -77,14 +75,16 @@ type Puppet struct {
 	LastRun       LastRunSummary
 	LastRunUpdate time.Time
 	LastRunFailed bool
+	l             *zap.SugaredLogger
 }
 
 //func New(modulePath []string, manifestPath string) (p *Puppet, err error) {
-func New(modulePath []string, manifestPath string) (p *Puppet, err error) {
+func New(log *zap.SugaredLogger, modulePath []string, manifestPath string) (p *Puppet, err error) {
 	var pup Puppet
 	pup.ModulePath = modulePath
 	pup.ManifestPath = manifestPath
 	pup.PuppetPath, err = exec.LookPath("puppet")
+	pup.l = log
 	return &pup, err
 }
 
@@ -92,7 +92,7 @@ func (p *Puppet) Run() (err error) {
 	p.Lock()
 	defer p.Unlock()
 	cmd := exec.Command(p.PuppetPath, "apply", "-v", "--modulepath", strings.Join(p.ModulePath, ":"), p.ManifestPath)
-	log.Debugf("Running puppet with command %+v", cmd.Args)
+	p.l.Debugf("Running puppet with command %+v", cmd.Args)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (p *Puppet) Run() (err error) {
 	go p.logStdout(stdout)
 	go p.logStderr(stderr)
 	p.ioLock.Wait()
-	log.Notice("Puppet run ended")
+	p.l.Info("Puppet run ended")
 	err = cmd.Wait()
 	if err != nil {
 		p.LastRunFailed = true
@@ -151,13 +151,13 @@ func (p *Puppet) logStdout(r io.Reader) {
 	defer p.ioLock.Done()
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		log.Notice(scanner.Text()) // Println will add back the final '\n'
+		p.l.Info(scanner.Text())
 	}
 }
 func (p *Puppet) logStderr(r io.Reader) {
 	defer p.ioLock.Done()
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		log.Warning(scanner.Text()) // Println will add back the final '\n'
+		p.l.Warn(scanner.Text())
 	}
 }

@@ -1,20 +1,22 @@
 package mq
 
 import (
-	"fmt"
 	"github.com/XANi/go-dpp/common"
 	"github.com/zerosvc/go-zerosvc"
+	"go.uber.org/zap"
 	"time"
 )
 
 type Config struct {
-	Address           string        `yaml:"address"`
-	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"`
+	Address           string             `yaml:"address"`
+	HeartbeatInterval time.Duration      `yaml:"heartbeat_interval"`
+	Logger            *zap.SugaredLogger `yaml:"-"`
 }
 
 type MQ struct {
 	Info       map[string]interface{}
 	Node       *zerosvc.Node
+	l          *zap.SugaredLogger
 	leaderName string
 	leaderTS   time.Time
 }
@@ -35,6 +37,7 @@ func New(cfg Config, runtime common.Runtime) (*MQ, error) {
 	}
 	var mq MQ
 	mq.Node = node
+	mq.l = cfg.Logger
 	go mq.masterElection()
 	return &mq, nil
 }
@@ -59,7 +62,6 @@ func (m *MQ) masterElection() {
 				if err != nil {
 					continue
 				}
-				fmt.Printf("event: %+v\n", ev)
 				if m.leaderTS.Before(e.Ts) {
 					m.leaderTS = e.Ts.UTC()
 					m.leaderName = e.Node
@@ -77,7 +79,7 @@ func (m *MQ) masterElection() {
 					})
 					err := leaderEv.Send("dpp/leader_election")
 					if err != nil {
-						fmt.Printf("err: %s", err)
+						m.l.Errorf("master election err: %s", err)
 					}
 				} else { //else if we're master, send event every minute
 					if m.Node.Name == m.leaderName {
@@ -89,6 +91,7 @@ func (m *MQ) masterElection() {
 						retain := time.Now().Add(time.Minute * 10).UTC()
 						leaderEv.RetainTill = &retain
 						leaderEv.Send("dpp/leader_election")
+						m.l.Debug("we're the master")
 					}
 				}
 			}
