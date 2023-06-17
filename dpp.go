@@ -27,6 +27,7 @@ var debug = false
 var log *zap.SugaredLogger
 
 // /* embeds with all files, just dir/ ignores files starting with _ or .
+//
 //go:embed static templates
 var embeddedWebContent embed.FS
 
@@ -126,6 +127,9 @@ func MainLoop() {
 	if err != nil {
 		log.Errorf("Config error: %+v", err)
 		os.Exit(1)
+	}
+	if len(cfg.WorkDir) < 1 {
+		cfg.WorkDir = "/var/lib/dpp"
 	}
 	if len(cfg.RepoDir) < 1 {
 		cfg.RepoDir = cfg.WorkDir + "/repos"

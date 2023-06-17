@@ -52,7 +52,16 @@ func New(cfg *config.Config) (o *Overlord, err error) {
 		}
 		overlord.repos[repoName], err = repo.New(repoCfg)
 		if err != nil {
-			log.Panicf("Can't configure repo %s: %s", repoName, err)
+			o.l.Errorf("Error configuring repo [%s], running cleanup", repoName)
+			if strings.HasPrefix(repoCfg.TargetDir, "/var/lib/dpp") {
+				err := os.RemoveAll(repoCfg.TargetDir)
+				if err != nil {
+					o.l.Panicf("couldn't cleanup dir [%s]: %s", repoCfg.TargetDir, err)
+				}
+			} else {
+				o.l.Errorf("refusing to remove dir not in default [/var/lib/dpp] workdir path for safety reasons")
+			}
+			return o, err
 		}
 	}
 	return &overlord, err
