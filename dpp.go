@@ -140,24 +140,26 @@ func MainLoop() {
 	mq, err := mq.New(cfg.MQ, runtime)
 	_ = mq
 	if err != nil {
-		log.Errorf("mq start failed: %s", err)
+		log.Errorf("mq start failed: %", err)
+		go func() {
+			log.Infof("will restart daemon in 8 hours and try again")
+			time.Sleep(time.Hour * 8)
+			exit <- true
+		}()
 	} else {
-		log.Errorf("connected to MQ at %s, heartbeats at", cfg.MQ, mq.Node.HeartbeatPath())
+		log.Errorf("connected to MQ at %s, heartbeats at", cfg.MQ)
 	}
 	if cfg.Web != nil {
 		cfg.Web.Logger = log
 		w, err := web.New(*cfg.Web, embeddedWebContent)
 		if err != nil {
-			log.Errorf("error setting up web server", err)
+			log.Errorf("error setting up web server: %s", err)
 		}
 		go func() {
 			log.Errorf("error listening on web socket %s: %s", cfg.Web.ListenAddr, w.Run())
 		}()
 	}
 	cfg.Logger = log
-	if err != nil {
-		log.Errorf("starting web server failed with: %s", err)
-	}
 	r, err := overlord.New(&cfg)
 	if err != nil {
 		log.Panicf("Error while starting overlord: %s", err)
