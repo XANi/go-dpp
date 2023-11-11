@@ -78,7 +78,7 @@ type Puppet struct {
 	l             *zap.SugaredLogger
 }
 
-//func New(modulePath []string, manifestPath string) (p *Puppet, err error) {
+// func New(modulePath []string, manifestPath string) (p *Puppet, err error) {
 func New(log *zap.SugaredLogger, modulePath []string, manifestPath string) (p *Puppet, err error) {
 	var pup Puppet
 	pup.ModulePath = modulePath

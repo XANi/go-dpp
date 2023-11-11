@@ -106,7 +106,7 @@ func main() {
 }
 
 func MainLoop() {
-	log.Debugf("version: %s", version)
+	log.Infof("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
 		"/etc/dpp/config.yaml",
