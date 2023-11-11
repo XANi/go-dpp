@@ -9,9 +9,9 @@ jobs:
     test:
       runs-on: ubuntu-22.04
       steps:
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
+          go-version: "1.20"
       - uses: actions/checkout@v3
       - run: go test -v ./...
     build:
@@ -19,7 +19,7 @@ jobs:
       steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: "1.20"
       - uses: actions/checkout@v3
       - run: make arch
       - uses: ncipollo/release-action@v1
