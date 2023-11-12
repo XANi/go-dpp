@@ -3,6 +3,7 @@ package mq
 import (
 	"fmt"
 	"github.com/XANi/go-dpp/common"
+	uuid "github.com/satori/go.uuid"
 	"github.com/zerosvc/go-zerosvc"
 	"go.uber.org/zap"
 	"net/url"
@@ -33,8 +34,11 @@ func New(cfg Config, runtime common.Runtime) (*MQ, error) {
 		return nil, fmt.Errorf("error parsing URL: %w", err)
 	}
 	tr, err := zerosvc.NewTransportMQTTv5(zerosvc.ConfigMQTTv5{
-		ID:      nodeName,
+		// we add a bit of randomness here so running multiple copies of on same node doesn't cause disconnects
+		// as MQTT is supposed to disconnect clients with same clientid
+		ID:      nodeName + uuid.NewV4().String()[0:8],
 		MQTTURL: []*url.URL{addr},
+		Logger:  runtime.Logger.Named("transport"),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating transport: %w", err)
@@ -45,6 +49,7 @@ func New(cfg Config, runtime common.Runtime) (*MQ, error) {
 		AutoHeartbeat: true,
 		AutoSigner:    func(new []byte) (old []byte) { return []byte{} },
 		EventRoot:     "dpp",
+		Logger:        runtime.Logger.Named("node"),
 	})
 	if err != nil {
 		return nil, err

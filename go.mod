@@ -6,12 +6,14 @@ require (
 	github.com/XANi/go-gitcli v0.0.3
 	github.com/XANi/go-gpgcli v0.0.0-20170104222322-535a9efec3cb
 	github.com/XANi/go-yamlcfg v0.0.1
+	github.com/XANi/goneric v1.1.1-0.20230503203402-e0b241fab05f
 	github.com/efigence/go-mon v1.3.5
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli v0.0.0-20170706194625-4b90d79a682b
-	github.com/zerosvc/go-zerosvc v1.0.3
+	github.com/zerosvc/go-zerosvc v1.1.1
 	go.uber.org/zap v1.26.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/sqlite v1.5.4
@@ -19,7 +21,6 @@ require (
 )
 
 require (
-	github.com/XANi/goneric v1.1.1-0.20230503203402-e0b241fab05f // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -45,7 +46,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -62,4 +62,4 @@ require (
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 )
 
-//replace github.com/zerosvc/go-zerosvc => /home/xani/src/my/go-zerosvc
+// replace github.com/zerosvc/go-zerosvc => /home/xani/src/my/go-zerosvc

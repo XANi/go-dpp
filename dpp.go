@@ -4,7 +4,9 @@ import (
 	"embed"
 	"github.com/XANi/go-dpp/common"
 	"github.com/XANi/go-dpp/mq"
+	"github.com/XANi/goneric"
 	"github.com/urfave/cli"
+	"github.com/zerosvc/go-zerosvc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
@@ -135,7 +137,7 @@ func MainLoop() {
 		cfg.RepoDir = cfg.WorkDir + "/repos"
 	}
 	log.Debugf("Config: %+v", cfg)
-	runtime := common.Runtime{Logger: zap.S()}
+	runtime := common.Runtime{Logger: log}
 	cfg.MQ.Logger = log.Named("mq")
 	mq, err := mq.New(cfg.MQ, runtime)
 	_ = mq
@@ -147,7 +149,8 @@ func MainLoop() {
 			exit <- true
 		}()
 	} else {
-		log.Errorf("connected to MQ at %s, heartbeats at", cfg.MQ)
+		log.Infof("connected to MQ at %s", cfg.MQ)
+
 	}
 	if cfg.Web != nil {
 		cfg.Web.Logger = log
@@ -174,12 +177,29 @@ func MainLoop() {
 	go func() {
 		r.Run()
 		for {
+			success, summary, ts := r.State()
+			_ = summary
+			mq.Node.Lock()
+			mq.Node.Services["puppet"] = zerosvc.Service{
+				Ok: success,
+				Data: struct {
+					TS      time.Time `json:"ts" cbor:"ts"`
+					Changes int       `json:"changes" cbor:"changes"`
+				}{
+					TS: ts,
+					Changes: goneric.Sum(goneric.MapToSlice(func(k string, v int) int {
+						return v
+					}, summary.Changes)...),
+				},
+			}
+			mq.Node.Unlock()
 			select {
 			case <-runPuppet:
 				r.Run()
 			case <-time.After(time.Second * time.Duration(cfg.Puppet.ScheduleRun)):
 				r.Run()
 			}
+
 		}
 	}()
 	signalUSR1 := make(chan os.Signal, 1)

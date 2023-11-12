@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 )
 
 type Overlord struct {
@@ -126,6 +127,9 @@ func (o *Overlord) Run() {
 	}
 }
 
+func (o *Overlord) State() (success bool, lastRunSummary puppet.LastRunSummary, ts time.Time) {
+	return o.puppet.LastRunStats()
+}
 func (o *Overlord) Update() error {
 	var wg sync.WaitGroup
 	o.Lock()
