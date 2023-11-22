@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"github.com/XANi/go-dpp/common"
+	"github.com/XANi/go-dpp/messdb"
 	"github.com/XANi/go-dpp/mq"
 	"github.com/XANi/goneric"
 	"github.com/urfave/cli"
@@ -124,6 +125,7 @@ func MainLoop() {
 			MinimumInterval: 300,
 		},
 	}
+	cfg.NodeName, _ = os.Hostname()
 
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
@@ -139,6 +141,7 @@ func MainLoop() {
 	log.Debugf("Config: %+v", cfg)
 	runtime := common.Runtime{Logger: log}
 	cfg.MQ.Logger = log.Named("mq")
+	cfg.MQ.NodeName = cfg.NodeName
 	mq, err := mq.New(cfg.MQ, runtime)
 	_ = mq
 	if err != nil {
@@ -150,9 +153,20 @@ func MainLoop() {
 		}()
 	} else {
 		log.Infof("connected to MQ at %s", cfg.MQ)
-
+	}
+	db, err := messdb.New(messdb.Config{
+		Node:   cfg.NodeName,
+		Path:   "/var/lib/dpp/messdb.sql",
+		MQ:     mq,
+		Logger: log.Named("messdb"),
+	})
+	if err != nil {
+		log.Errorf("error initializing database: %s", err)
+	} else {
+		db.Set("test", "asd")
 	}
 	if cfg.Web != nil {
+		cfg.Web.DB = db
 		cfg.Web.Logger = log
 		w, err := web.New(*cfg.Web, embeddedWebContent)
 		if err != nil {

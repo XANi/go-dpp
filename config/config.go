@@ -25,6 +25,7 @@ type Config struct {
 	KillOnBadConfig bool               `yaml:"kill_on_bad_config"`
 	MQ              mq.Config          `yaml:"mq"`
 	Logger          *zap.SugaredLogger `yaml:"-"`
+	NodeName        string             `yaml:"node_name"`
 }
 
 type PuppetInterval struct {

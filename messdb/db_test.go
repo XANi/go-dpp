@@ -42,23 +42,24 @@ func TestMessDB(t *testing.T) {
 
 	//db.db = db.db.Debug()
 	require.NoError(t, err)
-	err = db.Set("test", []byte("1234"))
+	err = db.Set("test", "1234")
 	require.NoError(t, err)
 
 	value, found, err := db.Get("test")
 	require.NoError(t, err)
-	assert.Equal(t, []byte("1234"), value)
+	assert.Equal(t, "1234", value)
 	assert.True(t, found)
 
 	value, found, err = db.Get("notfound")
 	require.NoError(t, err)
-	assert.Equal(t, []byte(nil), value)
-	assert.True(t, found)
+	assert.Equal(t, "", value)
+	assert.False(t, found)
 
-	err = db.Set("test", []byte("2222"))
+	err = db.Set("test", "2222")
 	require.NoError(t, err)
 	value, found, err = db.Get("test")
 	require.NoError(t, err)
-	assert.Equal(t, []byte("2222"), value)
+	assert.Equal(t, "2222", value)
 	assert.True(t, found)
+
 }

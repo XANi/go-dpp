@@ -14,6 +14,7 @@ type Config struct {
 	Address           string             `yaml:"address"`
 	HeartbeatInterval time.Duration      `yaml:"heartbeat_interval"`
 	Logger            *zap.SugaredLogger `yaml:"-"`
+	NodeName          string             `yaml:"-"`
 }
 
 type MQ struct {

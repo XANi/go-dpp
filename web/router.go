@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/XANi/go-dpp/messdb"
 	"github.com/efigence/go-mon"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
@@ -18,12 +19,14 @@ type WebBackend struct {
 	al  *zap.SugaredLogger
 	r   *gin.Engine
 	cfg *Config
+	db  *messdb.MessDB
 }
 
 type Config struct {
 	Logger       *zap.SugaredLogger `yaml:"-"`
 	AccessLogger *zap.SugaredLogger `yaml:"-"`
 	ListenAddr   string             `yaml:"listen_addr"`
+	DB           *messdb.MessDB     `yaml:"-"`
 }
 
 func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
@@ -37,6 +40,7 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 		l:   cfg.Logger,
 		al:  cfg.AccessLogger,
 		cfg: &cfg,
+		db:  cfg.DB,
 	}
 	if cfg.AccessLogger == nil {
 		w.al = w.l //.Named("accesslog")
@@ -67,7 +71,7 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 	defer mon.GlobalStatus.Update(mon.StatusOk, "ok")
 	// healthcheckHandler, haproxyStatus := mon.HandleHealthchecksHaproxy()
 	// r.GET("/_status/metrics", gin.WrapF(healthcheckHandler))
-
+	w.addMessDBAPI()
 	httpFS := http.FileServer(http.FS(webFS))
 	r.GET("/s/*filepath", func(c *gin.Context) {
 		// content is embedded under static/ dir
