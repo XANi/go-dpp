@@ -22,11 +22,14 @@ type deployer struct {
 func NewDeployer(c Config) (*deployer, error) {
 	var d deployer
 	if len(c.Files) < 1 {
+		ex, _ := os.Executable()
 		c.Files = []string{
 			`/etc/puppet/hiera.yaml`,
 			`/etc/puppet/puppet.conf`,
 			`/etc/dpp/config.yaml`,
+			ex,
 		}
+
 	}
 	d.cfg = &c
 	return &d, nil
