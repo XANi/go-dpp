@@ -162,8 +162,6 @@ func MainLoop() {
 	})
 	if err != nil {
 		log.Errorf("error initializing database: %s", err)
-	} else {
-		db.Set("test", "asd")
 	}
 	if cfg.Web != nil {
 		cfg.Web.DB = db

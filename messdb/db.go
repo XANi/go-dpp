@@ -121,7 +121,7 @@ func (m *MessDB) startSync() error {
 	return nil
 }
 
-func (m *MessDB) Set(key string, value string, expires ...time.Duration) error {
+func (m *MessDB) Set(key string, value []byte, expires ...time.Duration) error {
 	r := KV{
 		Key:   key,
 		Owner: m.node,
@@ -147,7 +147,7 @@ func (m *MessDB) Set(key string, value string, expires ...time.Duration) error {
 	return q.Error
 }
 
-func (m *MessDB) Get(key string) (value string, found bool, err error) {
+func (m *MessDB) Get(key string) (value []byte, found bool, err error) {
 	r := KV{}
 	q := m.db.Limit(1).Find(&r, "key = ?", key)
 	if q.RowsAffected < 1 {

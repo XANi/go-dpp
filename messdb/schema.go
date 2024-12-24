@@ -8,5 +8,5 @@ type KV struct {
 	UpdatedAt time.Time
 	SyncedAt  time.Time
 	Owner     string
-	Value     string
+	Value     []byte
 }

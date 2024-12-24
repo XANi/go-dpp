@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -45,15 +46,18 @@ func (w *WebBackend) messdbGet(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}
-	c.JSON(http.StatusOK, &MessDBKey{Data: data})
+	c.Data(http.StatusOK, "application/octet-stream", data)
 }
 
 func (w *WebBackend) messdbSet(c *gin.Context) {
 	k := c.Param("key")
-	d := MessDBKey{}
-	c.BindJSON(&d)
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, newJSONError(err, "error reading data"))
+		return
+	}
 
-	err := w.db.Set(k, d.Data)
+	err = w.db.Set(k, body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, newJSONError(err, "error loading key"))
 		return

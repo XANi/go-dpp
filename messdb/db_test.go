@@ -43,24 +43,24 @@ func TestMessDB(t *testing.T) {
 
 	//db.db = db.db.Debug()
 	require.NoError(t, err)
-	err = db.Set("test", "1234")
+	err = db.Set("test", []byte("1234"))
 	require.NoError(t, err)
 
 	value, found, err := db.Get("test")
 	require.NoError(t, err)
-	assert.Equal(t, "1234", value)
+	assert.Equal(t, "1234", string(value))
 	assert.True(t, found)
 
 	value, found, err = db.Get("notfound")
 	require.NoError(t, err)
-	assert.Equal(t, "", value)
+	assert.Equal(t, "", string(value))
 	assert.False(t, found)
 
-	err = db.Set("test", "2222")
+	err = db.Set("test", []byte("2222"))
 	require.NoError(t, err)
 	value, found, err = db.Get("test")
 	require.NoError(t, err)
-	assert.Equal(t, "2222", value)
+	assert.Equal(t, "2222", string(value))
 	assert.True(t, found)
 }
 
@@ -96,40 +96,40 @@ func TestMessDBCluster(t *testing.T) {
 	l.LogLevel = logger.Info
 	db2.db.Logger = l
 
-	err = db1.Set("shared::test1", "1234")
+	err = db1.Set("shared::test1", []byte("1234"))
 	require.NoError(t, err)
-	err = db2.Set("shared::test2", "5678")
+	err = db2.Set("shared::test2", []byte("5678"))
 	require.NoError(t, err)
 	time.Sleep(time.Second)
 
 	value, found, err := db1.Get("shared::test1")
 	require.NoError(t, err)
-	assert.Equal(t, "1234", value)
+	assert.Equal(t, "1234", string(value))
 	assert.True(t, found)
 
 	value, found, err = db1.Get("shared::test2")
 	require.NoError(t, err)
-	assert.Equal(t, "5678", value)
+	assert.Equal(t, "5678", string(value))
 	assert.True(t, found)
 
 	value, found, err = db2.Get("shared::test1")
 	require.NoError(t, err)
-	assert.Equal(t, "1234", value)
+	assert.Equal(t, "1234", string(value))
 	assert.True(t, found)
 
 	value, found, err = db2.Get("shared::test2")
 	require.NoError(t, err)
-	assert.Equal(t, "5678", value)
+	assert.Equal(t, "5678", string(value))
 	assert.True(t, found)
 
-	err = db1.Set("shared::test1", "6666")
+	err = db1.Set("shared::test1", []byte("6666"))
 	time.Sleep(time.Second)
 	require.NoError(t, err)
-	err = db2.Set("shared::test1", "6667")
+	err = db2.Set("shared::test1", []byte("6667"))
 	// fail coz the key belongs to db1
 	require.Error(t, err)
 	value, found, err = db2.Get("shared::test1")
 	require.NoError(t, err)
-	assert.Equal(t, "6666", value)
+	assert.Equal(t, "6666", string(value))
 	assert.True(t, found)
 }
