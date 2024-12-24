@@ -26,6 +26,7 @@ type Config struct {
 	MQ              mq.Config          `yaml:"mq"`
 	Logger          *zap.SugaredLogger `yaml:"-"`
 	NodeName        string             `yaml:"node_name"`
+	UnixSocketDir   string             `yaml:"unix_socket_dir"`
 }
 
 type PuppetInterval struct {

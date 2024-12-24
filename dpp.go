@@ -33,11 +33,14 @@ var log *zap.SugaredLogger
 //
 //go:embed static templates
 var embeddedWebContent embed.FS
+var underSystemd bool
 
 func init() {
 	consoleEncoderConfig := zap.NewDevelopmentEncoderConfig()
 	// naive systemd detection. Drop timestamp if running under it
+	// broken in new systemd ;/
 	if os.Getenv("INVOCATION_ID") != "" || os.Getenv("JOURNAL_STREAM") != "" {
+
 		consoleEncoderConfig.TimeKey = ""
 	}
 	consoleEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -76,9 +79,17 @@ func main() {
 	app.Usage = "Distributed puppet runner"
 	app.Version = version
 	app.Action = func(c *cli.Context) error {
-		MainLoop()
+		MainLoop(c)
 		os.Exit(0)
 		return nil
+	}
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "socket-dir",
+			Usage:  "specify dir for control socket, [dpp.socket] will be created inside",
+			Hidden: false,
+			Value:  "",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -108,7 +119,7 @@ func main() {
 
 }
 
-func MainLoop() {
+func MainLoop(c *cli.Context) {
 	log.Infof("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
@@ -126,6 +137,7 @@ func MainLoop() {
 		},
 	}
 	cfg.NodeName, _ = os.Hostname()
+	cfg.UnixSocketDir = c.String("socket-dir")
 
 	err := yamlcfg.LoadConfig(cfgFiles, &cfg)
 	if err != nil {
@@ -166,6 +178,7 @@ func MainLoop() {
 	if cfg.Web != nil {
 		cfg.Web.DB = db
 		cfg.Web.Logger = log
+		cfg.Web.UnixSocketDir = cfg.UnixSocketDir
 		w, err := web.New(*cfg.Web, embeddedWebContent)
 		if err != nil {
 			log.Errorf("error setting up web server: %s", err)

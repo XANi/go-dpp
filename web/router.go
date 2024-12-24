@@ -24,10 +24,11 @@ type WebBackend struct {
 }
 
 type Config struct {
-	Logger       *zap.SugaredLogger `yaml:"-"`
-	AccessLogger *zap.SugaredLogger `yaml:"-"`
-	ListenAddr   string             `yaml:"listen_addr"`
-	DB           *messdb.MessDB     `yaml:"-"`
+	Logger        *zap.SugaredLogger `yaml:"-"`
+	AccessLogger  *zap.SugaredLogger `yaml:"-"`
+	ListenAddr    string             `yaml:"listen_addr"`
+	UnixSocketDir string             `yaml:"-"`
+	DB            *messdb.MessDB     `yaml:"-"`
 }
 
 func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
@@ -100,25 +101,28 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 
 func (b *WebBackend) Run() error {
 	b.l.Infof("listening on %s", b.cfg.ListenAddr)
-	go func() {
-		st, err := os.Stat("/run/dpp")
-		if err != nil {
-			err = os.Mkdir("/run/dpp", 0700)
+	if b.cfg.UnixSocketDir != "" {
+		filename := b.cfg.UnixSocketDir + "/dpp.socket"
+		go func() {
+			st, err := os.Stat(b.cfg.UnixSocketDir)
 			if err != nil {
-				b.l.Errorf("could not create /run/dpp: %s", err)
+				err = os.Mkdir(b.cfg.UnixSocketDir, 0700)
+				if err != nil {
+					b.l.Errorf("could not create %s %s", b.cfg.UnixSocketDir, err)
+				}
+				return
 			}
-			return
-		}
-		if !st.IsDir() {
-			b.l.Errorf("/run/dpp is not a directory, not starting socket")
-			return
-		}
-		b.l.Infof("running on unix socket /run/dpp/dpp.socket")
-		// https://github.com/golang/go/issues/70985
-		if _, err := os.Stat("/run/dpp/dpp.socket"); err == nil {
-			os.Remove("/run/dpp/dpp.socket")
-		}
-		b.l.Errorf("failed starting unix socket: %s", b.r.RunUnix("/run/dpp/dpp.socket"))
-	}()
+			if !st.IsDir() {
+				b.l.Errorf("%s is not a directory, not starting socket", b.cfg.UnixSocketDir)
+				return
+			}
+			b.l.Infof("running on unix socket %s", filename)
+			// https://github.com/golang/go/issues/70985
+			if _, err := os.Stat(filename); err == nil {
+				os.Remove(filename)
+			}
+			b.l.Errorf("failed starting unix socket: %s", b.r.RunUnix(filename))
+		}()
+	}
 	return b.r.Run(b.cfg.ListenAddr)
 }
