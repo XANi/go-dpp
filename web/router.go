@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -85,6 +86,9 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 			"title": c.Request.RemoteAddr,
 		})
 	})
+	r.GET("/source", func(c *gin.Context) {
+		c.String(http.StatusOK, fmt.Sprintf("%+v", c.Request.RemoteAddr))
+	})
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
 			"notfound": c.Request.URL.Path,
@@ -96,5 +100,25 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 
 func (b *WebBackend) Run() error {
 	b.l.Infof("listening on %s", b.cfg.ListenAddr)
+	go func() {
+		st, err := os.Stat("/run/dpp")
+		if err != nil {
+			err = os.Mkdir("/run/dpp", 0700)
+			if err != nil {
+				b.l.Errorf("could not create /run/dpp: %s", err)
+			}
+			return
+		}
+		if !st.IsDir() {
+			b.l.Errorf("/run/dpp is not a directory, not starting socket")
+			return
+		}
+		b.l.Infof("running on unix socket /run/dpp/dpp.socket")
+		// https://github.com/golang/go/issues/70985
+		if _, err := os.Stat("/run/dpp/dpp.socket"); err == nil {
+			os.Remove("/run/dpp/dpp.socket")
+		}
+		b.l.Errorf("failed starting unix socket: %s", b.r.RunUnix("/run/dpp/dpp.socket"))
+	}()
 	return b.r.Run(b.cfg.ListenAddr)
 }

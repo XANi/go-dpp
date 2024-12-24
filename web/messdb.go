@@ -8,6 +8,12 @@ import (
 
 func (w *WebBackend) addMessDBAPI() {
 	r := w.r.Group("/api/messdb")
+	r.Use(gin.HandlerFunc(func(c *gin.Context) {
+		if c.Request.RemoteAddr != "@" {
+			c.String(http.StatusForbidden, "db available only over socket")
+			c.Abort()
+		}
+	}))
 	r.GET("/k/:key", w.messdbGet)
 	r.POST("/k/:key", w.messdbSet)
 }
