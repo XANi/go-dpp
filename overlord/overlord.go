@@ -25,8 +25,9 @@ type Overlord struct {
 	sync.Mutex
 }
 
-func New(cfg *config.Config) (o *Overlord, err error) {
+func New(cfg *config.Config) (*Overlord, error) {
 	var overlord Overlord
+	var err error
 	repoPath := make(map[string]string, len(cfg.UseRepos))
 	overlord.cfg = cfg
 	overlord.repos = make(map[string]*repo.Repo)
@@ -53,16 +54,16 @@ func New(cfg *config.Config) (o *Overlord, err error) {
 		}
 		overlord.repos[repoName], err = repo.New(repoCfg)
 		if err != nil {
-			o.l.Errorf("Error configuring repo [%s], running cleanup", repoName)
+			overlord.l.Errorf("Error configuring repo [%s], running cleanup", repoName)
 			if strings.HasPrefix(repoCfg.TargetDir, "/var/lib/dpp") {
 				err := os.RemoveAll(repoCfg.TargetDir)
 				if err != nil {
-					o.l.Panicf("couldn't cleanup dir [%s]: %s", repoCfg.TargetDir, err)
+					overlord.l.Panicf("couldn't cleanup dir [%s]: %s", repoCfg.TargetDir, err)
 				}
 			} else {
-				o.l.Errorf("refusing to remove dir not in default [/var/lib/dpp] workdir path for safety reasons")
+				overlord.l.Errorf("refusing to remove dir not in default [/var/lib/dpp] workdir path for safety reasons")
 			}
-			return o, err
+			return nil, err
 		}
 	}
 	return &overlord, err
@@ -72,7 +73,7 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 	modulePath := make([]string, len(cfg.UseRepos))
 	repoPath := make(map[string]string, len(cfg.UseRepos))
 	for i, k := range cfg.UseRepos {
-		modulePath[i] = cfg.RepoDir + "/" + k + "/puppet/modules"
+		modulePath[i] = cfg.RepoDir + "/" + k + "/modules"
 		repoPath[k] = cfg.RepoDir + "/" + k
 	}
 	if len(cfg.ExtraModulePath) > 0 {
@@ -94,7 +95,7 @@ func initPuppet(cfg *config.Config) (*puppet.Puppet, error) {
 	if err != nil {
 		cfg.Logger.Errorf("can't create fact fil for basemodulepath: %s", err)
 	}
-	return puppet.New(cfg.Logger.Named("puppet"), modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/puppet/manifests/")
+	return puppet.New(cfg.Logger.Named("puppet"), modulePath, cfg.RepoDir+"/"+cfg.ManifestFrom+"/manifests/")
 }
 
 func (o *Overlord) Run() {

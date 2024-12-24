@@ -14,7 +14,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli v0.0.0-20170706194625-4b90d79a682b
-	github.com/zerosvc/go-zerosvc v1.1.1
+	github.com/zerosvc/go-zerosvc v1.1.2
 	go.uber.org/zap v1.26.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.5

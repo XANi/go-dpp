@@ -20,6 +20,13 @@ Todo:
 * branch support
 
 
+## Install
+
+required/recommended packages
+
+    apt install aptitude gnupg2 ca-certificates puppet git puppet-module-puppetlabs-cron-core puppet-module-puppetlabs-host-core puppet-module-puppetlabs-mount-core puppet-module-puppetlabs-sshkeys-core
+
+
 ## Building
 
     make
