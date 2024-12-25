@@ -12,7 +12,9 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -128,9 +130,18 @@ func (b *WebBackend) Run() error {
 			}
 			b.l.Infof("running on unix socket %s", filename)
 			// https://github.com/golang/go/issues/70985
+			// defer is not called on control-c so we need to clean by ourselves
 			if _, err := os.Stat(filename); err == nil {
 				os.Remove(filename)
 			}
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			go func() {
+				for range sigs {
+					os.Remove(filename)
+					os.Exit(0)
+				}
+			}()
 			b.l.Errorf("failed starting unix socket: %s", b.r.RunUnix(filename))
 		}()
 	}
