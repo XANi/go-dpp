@@ -151,3 +151,8 @@ func (o *Overlord) Update() error {
 	o.Unlock()
 	return nil
 }
+
+func (o *Overlord) LastRunSummary() (success bool, stats puppet.LastRunSummary, ts time.Time) {
+	return o.puppet.LastRunStats()
+
+}

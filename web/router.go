@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/XANi/go-dpp/messdb"
+	"github.com/XANi/go-dpp/puppet"
 	"github.com/efigence/go-mon"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
@@ -24,11 +25,13 @@ type WebBackend struct {
 }
 
 type Config struct {
-	Logger        *zap.SugaredLogger `yaml:"-"`
-	AccessLogger  *zap.SugaredLogger `yaml:"-"`
-	ListenAddr    string             `yaml:"listen_addr"`
-	UnixSocketDir string             `yaml:"-"`
-	DB            *messdb.MessDB     `yaml:"-"`
+	Logger            *zap.SugaredLogger                                               `yaml:"-"`
+	AccessLogger      *zap.SugaredLogger                                               `yaml:"-"`
+	ListenAddr        string                                                           `yaml:"listen_addr"`
+	UnixSocketDir     string                                                           `yaml:"-"`
+	Version           string                                                           `yaml:"-"`
+	DB                *messdb.MessDB                                                   `yaml:"-"`
+	LastRunStatusFunc func() (success bool, stats puppet.LastRunSummary, ts time.Time) `yaml:"-"`
 }
 
 func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
@@ -59,7 +62,11 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 	r.Use(ginzap.GinzapWithConfig(w.al.Desugar(), &ginzap.Config{
 		TimeFormat: time.RFC3339,
 		UTC:        false,
-		SkipPaths:  []string{"/_status/health", "/_status/metrics"},
+		SkipPaths: []string{
+			"/_status/health",
+			"/_status/metrics",
+			"/last_run",
+		},
 	}))
 	//r.Use(ginzap.RecoveryWithZap(w.al.Desugar(), true))
 	// basic logging to stdout
@@ -87,9 +94,11 @@ func New(cfg Config, webFS fs.FS) (backend *WebBackend, err error) {
 			"title": c.Request.RemoteAddr,
 		})
 	})
-	r.GET("/source", func(c *gin.Context) {
-		c.String(http.StatusOK, fmt.Sprintf("%+v", c.Request.RemoteAddr))
+	r.GET("/version", func(c *gin.Context) {
+		c.String(http.StatusOK, cfg.Version)
 	})
+	r.GET("/last_run", w.Status)
+	r.HEAD("/last_run", w.Status)
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
 			"notfound": c.Request.URL.Path,
@@ -125,4 +134,21 @@ func (b *WebBackend) Run() error {
 		}()
 	}
 	return b.r.Run(b.cfg.ListenAddr)
+}
+
+func (b *WebBackend) Status(c *gin.Context) {
+	ok, stats, ts := b.cfg.LastRunStatusFunc()
+	status := http.StatusInternalServerError
+	if ok {
+		status = http.StatusOK
+	}
+	if !ts.IsZero() {
+		c.String(status, fmt.Sprintf("last: %s, changes: %v, dpp version %s",
+			time.Now().Sub(ts).Round(time.Second),
+			stats.Events,
+			b.cfg.Version,
+		))
+	} else {
+		c.String(http.StatusOK, "waiting for first run [%s]", b.cfg.Version)
+	}
 }

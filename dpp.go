@@ -175,10 +175,17 @@ func MainLoop(c *cli.Context) {
 	if err != nil {
 		log.Errorf("error initializing database: %s", err)
 	}
+	cfg.Logger = log
+	r, err := overlord.New(&cfg)
+	if err != nil {
+		log.Panicf("Error while starting overlord: %s", err)
+	}
 	if cfg.Web != nil {
+		cfg.Web.Version = version
 		cfg.Web.DB = db
 		cfg.Web.Logger = log
 		cfg.Web.UnixSocketDir = cfg.UnixSocketDir
+		cfg.Web.LastRunStatusFunc = r.LastRunSummary
 		w, err := web.New(*cfg.Web, embeddedWebContent)
 		if err != nil {
 			log.Errorf("error setting up web server: %s", err)
@@ -187,11 +194,7 @@ func MainLoop(c *cli.Context) {
 			log.Errorf("error listening on web socket %s: %s", cfg.Web.ListenAddr, w.Run())
 		}()
 	}
-	cfg.Logger = log
-	r, err := overlord.New(&cfg)
-	if err != nil {
-		log.Panicf("Error while starting overlord: %s", err)
-	}
+
 	go func() {
 		for {
 			log.Infof("updating repos")
