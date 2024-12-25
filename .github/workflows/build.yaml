@@ -1,6 +1,6 @@
 ---
 name: Build
-
+permissions: read-all
 on:
   push:
     branches:
