@@ -118,12 +118,13 @@ func (b *WebBackend) Run() error {
 				err = os.Mkdir(b.cfg.UnixSocketDir, 0700)
 				if err != nil {
 					b.l.Errorf("could not create %s %s", b.cfg.UnixSocketDir, err)
+					return
 				}
-				return
-			}
-			if !st.IsDir() {
-				b.l.Errorf("%s is not a directory, not starting socket", b.cfg.UnixSocketDir)
-				return
+			} else {
+				if !st.IsDir() {
+					b.l.Errorf("%s is not a directory, not starting socket", b.cfg.UnixSocketDir)
+					return
+				}
 			}
 			b.l.Infof("running on unix socket %s", filename)
 			// https://github.com/golang/go/issues/70985
