@@ -5,8 +5,8 @@ permissions:
   attestations: read
   checks: read
   contents: write
-  deployments: read|write|none
-  id-token: write|none
+  deployments: read
+  id-token: none
   issues: read
   discussions: read
   packages: write
