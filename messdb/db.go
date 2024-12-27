@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"math/rand"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -21,17 +22,19 @@ type Config struct {
 }
 
 type MessDB struct {
-	node         string
-	db           *gorm.DB
-	mq           *mq.MQ
-	l            *zap.SugaredLogger
-	dropCtr      atomic.Uint64
-	sharedPrefix string
-	sendQueue    chan *KV
+	node            string
+	db              *gorm.DB
+	mq              *mq.MQ
+	l               *zap.SugaredLogger
+	dropCtr         atomic.Uint64
+	sharedPrefix    string
+	sendQueue       chan *KV
+	readUpdateQueue chan string
 }
 
 func New(cfg Config) (*MessDB, error) {
 	db, err := gorm.Open(sqlite.Open(cfg.Path), &gorm.Config{})
+	db.Exec("PRAGMA  journal_mode=WAL")
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +46,13 @@ func New(cfg Config) (*MessDB, error) {
 		cfg.SharedPrefix = "shared::"
 	}
 	mdb := &MessDB{
-		db:           db,
-		mq:           cfg.MQ,
-		l:            cfg.Logger,
-		node:         cfg.Node,
-		sharedPrefix: cfg.SharedPrefix,
-		sendQueue:    make(chan *KV, 256),
+		db:              db,
+		mq:              cfg.MQ,
+		l:               cfg.Logger,
+		node:            cfg.Node,
+		sharedPrefix:    cfg.SharedPrefix,
+		sendQueue:       make(chan *KV, 256),
+		readUpdateQueue: make(chan string, 256),
 	}
 	err = db.AutoMigrate(&KV{})
 	if err != nil {
@@ -72,7 +76,7 @@ func (m *MessDB) startSync() error {
 	go func() {
 		for {
 			records := []KV{}
-			m.db.Limit(100).Find(&records, "synced_at < ?", time.Now().Add(time.Hour*-4))
+			m.db.Limit(100).Find(&records, "synced_at < ? AND key LIKE 'shared::%'", time.Now().Add(time.Hour*-4))
 			if len(records) == 0 {
 				time.Sleep(time.Minute * 120)
 				continue
@@ -88,7 +92,6 @@ func (m *MessDB) startSync() error {
 			} else {
 				time.Sleep(time.Minute * 30)
 			}
-
 		}
 	}()
 	go func() {
@@ -115,6 +118,16 @@ func (m *MessDB) startSync() error {
 				m.l.Warnf("tried to set same key from multiple hosts[%s: %s %s], ignoring", key.Key, key.Owner, search.Owner)
 			} else if search.UpdatedAt.Before(key.UpdatedAt) {
 				m.db.Save(&key)
+			}
+		}
+	}()
+	go func() {
+		time.Sleep(time.Second * 10)
+		for k := range m.readUpdateQueue {
+			m.l.Infof("updating read on %s", k)
+			tx := m.db.Model(&KV{}).Where("key = ?", k).Update("last_read", time.Now())
+			if tx.Error != nil {
+				m.l.Errorf("error updating %s: %s", k, err)
 			}
 		}
 	}()
@@ -155,6 +168,13 @@ func (m *MessDB) Get(key string) (value []byte, found bool, err error) {
 	}
 	if q.Error != nil {
 		return value, false, q.Error
+	}
+	if time.Now().Sub(r.LastRead) > time.Duration(int64(time.Hour)*24+rand.Int63n(int64(time.Hour)*24)) {
+		select {
+		case m.readUpdateQueue <- key:
+			m.l.Infof("updating read time on %s", key)
+		default:
+		}
 	}
 	return r.Value, true, nil
 }
