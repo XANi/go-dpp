@@ -43,7 +43,7 @@ func New(cfg Config) (*MessDB, error) {
 		return nil, err
 	}
 	if len(cfg.SharedPrefix) == 0 {
-		cfg.SharedPrefix = "shared::"
+		cfg.SharedPrefix = "@"
 	}
 	mdb := &MessDB{
 		db:              db,
@@ -74,9 +74,10 @@ func (m *MessDB) startSync() error {
 		}
 	}()
 	go func() {
+		shared_q := fmt.Sprintf("synced_at < ? AND key LIKE '%s%%'", m.sharedPrefix)
 		for {
 			records := []KV{}
-			m.db.Limit(100).Find(&records, "synced_at < ? AND key LIKE 'shared::%'", time.Now().Add(time.Hour*-4))
+			m.db.Limit(100).Find(&records, shared_q, time.Now().Add(time.Hour*-4))
 			if len(records) == 0 {
 				time.Sleep(time.Minute * 120)
 				continue
