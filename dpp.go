@@ -157,7 +157,7 @@ func MainLoop(c *cli.Context) {
 	mqConn, err := mq.New(cfg.MQ, runtime)
 	_ = mqConn
 	if err != nil {
-		log.Errorf("mqConn start failed: %", err)
+		log.Errorf("mqConn start failed: %s", err)
 		go func() {
 			log.Infof("will restart daemon in 8 hours and try again, running fake mq for messdb")
 			time.Sleep(time.Hour * 8)
@@ -170,12 +170,14 @@ func MainLoop(c *cli.Context) {
 	}
 	db, err := messdb.New(messdb.Config{
 		Node:   cfg.NodeName,
-		Path:   "/var/lib/dpp/messdb.sql",
+		Path:   cfg.WorkDir + "/messdb.sql",
 		MQ:     mqConn,
 		Logger: log.Named("messdb"),
 	})
 	if err != nil {
+		// db is nil on failure and the web API would nil-panic on use, so bail out
 		log.Errorf("error initializing database: %s", err)
+		os.Exit(1)
 	}
 	cfg.Logger = log
 	r, err := overlord.New(&cfg)

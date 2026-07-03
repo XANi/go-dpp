@@ -31,10 +31,14 @@ type Config struct {
 func New(cfg Config) (r *Repo, err error) {
 	var repo Repo
 	repo.l = cfg.Logger
+	// branch support is not implemented yet: everything is hardcoded to remotes/origin/master
+	if cfg.Branch != "" && cfg.Branch != "master" && cfg.Branch != "remotes/origin/master" {
+		repo.l.Warnf("branch [%s] requested but branch support is not implemented, using remotes/origin/master", cfg.Branch)
+	}
 	// resolve fingerprints to their full length
 	if len(cfg.GpgKeys) > 0 {
 		repo.gpg = true
-		repo.gpgKeys = make([]string, len(cfg.GpgKeys))
+		repo.gpgKeys = []string{}
 		gpg, err := gpgcli.New()
 		if err != nil {
 			return nil, err
@@ -42,7 +46,8 @@ func New(cfg Config) (r *Repo, err error) {
 		for _, key := range cfg.GpgKeys {
 			fingerprint, err := gpg.GetFingerprintById(key)
 			if err != nil {
-				fmt.Errorf("Couldn't resolve gpg fingerprint for key %s in local gpg db: %s, ignoring", key, err)
+				repo.l.Errorf("couldn't resolve gpg fingerprint for key %s in local gpg db: %s, ignoring", key, err)
+				continue
 			}
 			repo.gpgKeys = append(repo.gpgKeys, fingerprint)
 		}
@@ -67,7 +72,7 @@ func New(cfg Config) (r *Repo, err error) {
 	if err != nil {
 		gitRepo.HardReset() //dealing with index smaller than expected
 		// we do not err out here coz we want it to work offline too
-		repo.l.Errorf("error fetching[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error fetching[%s]: %s", cfg.TargetDir, err)
 	}
 	if repo.gpg {
 		if ok, errOrigin := gitRepo.VerifyCommit("remotes/origin/master"); ok {
@@ -98,11 +103,11 @@ func New(cfg Config) (r *Repo, err error) {
 	}
 	err = gitRepo.SubmoduleSync()
 	if err != nil {
-		repo.l.Errorf("error syncing submodules[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error syncing submodules[%s]: %s", cfg.TargetDir, err)
 	}
 	err = gitRepo.SubmoduleUpdate()
 	if err != nil {
-		repo.l.Errorf("error updating submodules[%s]", cfg.TargetDir, err)
+		repo.l.Errorf("error updating submodules[%s]: %s", cfg.TargetDir, err)
 		return nil, err
 	}
 	repo.repo = &gitRepo
@@ -124,6 +129,9 @@ func (r *Repo) Update() error {
 		return err
 	}
 	err = r.repo.Clean("--force", "-x")
+	if err != nil {
+		return err
+	}
 	err = r.repo.SubmoduleSync()
 	if err != nil {
 		return err

@@ -34,10 +34,10 @@ type MessDB struct {
 
 func New(cfg Config) (*MessDB, error) {
 	db, err := gorm.Open(sqlite.Open(cfg.Path), &gorm.Config{})
-	db.Exec("PRAGMA  journal_mode=WAL")
 	if err != nil {
 		return nil, err
 	}
+	db.Exec("PRAGMA  journal_mode=WAL")
 	err = db.AutoMigrate(&KV{})
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (m *MessDB) startSync() error {
 			m.l.Infof("updating read on %s", k)
 			tx := m.db.Model(&KV{}).Where("key = ?", k).Update("last_read", time.Now())
 			if tx.Error != nil {
-				m.l.Errorf("error updating %s: %s", k, err)
+				m.l.Errorf("error updating %s: %s", k, tx.Error)
 			}
 		}
 	}()
@@ -146,7 +146,6 @@ func (m *MessDB) Set(key string, value []byte, expires ...time.Duration) error {
 	if tx.Error == nil && search.Owner != r.Owner {
 		return fmt.Errorf("key %s already has different owner: %s", key, search.Owner)
 	}
-	fmt.Printf("-- %+v --\n", search)
 	q := m.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(&r)

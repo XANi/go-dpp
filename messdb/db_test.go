@@ -1,6 +1,7 @@
 package messdb
 
 import (
+	"fmt"
 	"github.com/XANi/go-dpp/common"
 	"github.com/XANi/go-dpp/mq"
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,8 @@ import (
 	"go.uber.org/zap/zaptest"
 	"gorm.io/gorm/logger"
 	"moul.io/zapgorm2"
+	"net"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -21,7 +24,34 @@ func getTestMQURL() string {
 	}
 	return defaultURL
 }
+
+// mqUnavailableReason is set once by init(); empty means the MQ broker is reachable.
+// Cached here so we probe the broker a single time rather than per queue-related test.
+var mqUnavailableReason string
+
+// init probes the MQ broker before any tests run so queue-related tests can be skipped
+// (via skipIfNoMQ) on machines without a local broker running.
+func init() {
+	u, err := url.Parse(getTestMQURL())
+	if err != nil {
+		mqUnavailableReason = fmt.Sprintf("invalid MQ url %q: %s", getTestMQURL(), err)
+		return
+	}
+	conn, err := net.DialTimeout("tcp", u.Host, time.Second*2)
+	if err != nil {
+		mqUnavailableReason = fmt.Sprintf("MQ broker not available at %s: %s", u.Host, err)
+		return
+	}
+	conn.Close()
+}
+
+func skipIfNoMQ(t *testing.T) {
+	if mqUnavailableReason != "" {
+		t.Skip("skipping queue test: " + mqUnavailableReason)
+	}
+}
 func TestMessDB(t *testing.T) {
+	skipIfNoMQ(t)
 	log := zaptest.NewLogger(t).Sugar()
 	runtime := common.Runtime{Logger: log}
 	cfg := mq.Config{
@@ -65,6 +95,7 @@ func TestMessDB(t *testing.T) {
 }
 
 func TestMessDBCluster(t *testing.T) {
+	skipIfNoMQ(t)
 	dir := t.TempDir()
 	log := zaptest.NewLogger(t).Sugar()
 	runtime := common.Runtime{Logger: log}

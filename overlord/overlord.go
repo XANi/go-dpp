@@ -111,7 +111,7 @@ func (o *Overlord) Run() {
 			success, summary, ts := o.puppet.LastRunStats()
 			if !success {
 				mon.GlobalStatus.Update(mon.StateCritical, "puppet run failed")
-			} else if v, ok := summary.Resources["failure"]; ok == true && v > 0 {
+			} else if v, ok := summary.Resources["failed"]; ok == true && v > 0 {
 				mon.GlobalStatus.Update(mon.StateWarning, fmt.Sprintf("failed resources: %d", v))
 			} else if v, ok := summary.Events["failure"]; ok == true && v > 0 {
 				mon.GlobalStatus.Update(mon.StateWarning, fmt.Sprintf("failed resources: %d", v))
@@ -135,7 +135,6 @@ func (o *Overlord) Update() error {
 	var wg sync.WaitGroup
 	o.Lock()
 	for name, r := range o.repos {
-		go func() {}()
 		o.l.Debugf("Updating repo %s", name)
 		wg.Add(1)
 		go func(r *repo.Repo, wg *sync.WaitGroup) {
