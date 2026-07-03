@@ -152,24 +152,26 @@ func MainLoop(c *cli.Context) {
 	}
 	log.Debugf("Config: %+v", cfg)
 	runtime := common.Runtime{Logger: log}
-	cfg.MQ.Logger = log.Named("mq")
+	cfg.MQ.Logger = log.Named("mqConn")
 	cfg.MQ.NodeName = cfg.NodeName
-	mq, err := mq.New(cfg.MQ, runtime)
-	_ = mq
+	mqConn, err := mq.New(cfg.MQ, runtime)
+	_ = mqConn
 	if err != nil {
-		log.Errorf("mq start failed: %", err)
+		log.Errorf("mqConn start failed: %", err)
 		go func() {
-			log.Infof("will restart daemon in 8 hours and try again")
+			log.Infof("will restart daemon in 8 hours and try again, running fake mq for messdb")
 			time.Sleep(time.Hour * 8)
 			exit <- true
 		}()
+		mqConn, err = mq.FakeMQ(cfg.MQ, runtime)
+
 	} else {
 		log.Infof("connected to MQ at %s", cfg.MQ)
 	}
 	db, err := messdb.New(messdb.Config{
 		Node:   cfg.NodeName,
 		Path:   "/var/lib/dpp/messdb.sql",
-		MQ:     mq,
+		MQ:     mqConn,
 		Logger: log.Named("messdb"),
 	})
 	if err != nil {
@@ -207,8 +209,8 @@ func MainLoop(c *cli.Context) {
 		for {
 			success, summary, ts := r.State()
 			_ = summary
-			mq.Node.Lock()
-			mq.Node.Services["puppet"] = zerosvc.Service{
+			mqConn.Node.Lock()
+			mqConn.Node.Services["puppet"] = zerosvc.Service{
 				Ok: success,
 				Data: struct {
 					TS      time.Time `json:"ts" cbor:"ts"`
@@ -220,7 +222,7 @@ func MainLoop(c *cli.Context) {
 					}, summary.Changes)...),
 				},
 			}
-			mq.Node.Unlock()
+			mqConn.Node.Unlock()
 			select {
 			case <-runPuppet:
 				r.Run()

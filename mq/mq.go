@@ -60,3 +60,28 @@ func New(cfg Config, runtime common.Runtime) (*MQ, error) {
 	mq.l = cfg.Logger
 	return &mq, nil
 }
+func FakeMQ(cfg Config, runtime common.Runtime) (*MQ, error) {
+	if cfg.HeartbeatInterval == 0 {
+		cfg.HeartbeatInterval = time.Minute * 10
+	}
+	nodeName := zerosvc.GetFQDN() + "@dpp"
+	tr, err := zerosvc.NewTransportDummy(zerosvc.ConfigDummy{Logger: cfg.Logger.Named("dummyMQ")})
+	if err != nil {
+		return nil, fmt.Errorf("error creating transport: %w", err)
+	}
+	node, err := zerosvc.NewNode(zerosvc.Config{
+		NodeName:      nodeName,
+		Transport:     tr,
+		AutoHeartbeat: true,
+		AutoSigner:    func(new []byte) (old []byte) { return []byte{} },
+		EventRoot:     "dpp",
+		Logger:        runtime.Logger.Named("node"),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var mq MQ
+	mq.Node = node
+	mq.l = cfg.Logger
+	return &mq, nil
+}
