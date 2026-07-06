@@ -42,6 +42,7 @@ func New(cfg *config.Config) (*Overlord, error) {
 			if cfg.KillOnBadConfig {
 				log.Panicf("incorrect config, failing")
 			}
+			continue
 		}
 		repoPath[repoName] = cfg.RepoDir + "/" + repoName
 		repoCfg := repo.Config{
