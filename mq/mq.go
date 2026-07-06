@@ -3,7 +3,7 @@ package mq
 import (
 	"fmt"
 	"github.com/XANi/go-dpp/common"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/zerosvc/go-zerosvc"
 	"go.uber.org/zap"
 	"net/url"
@@ -37,7 +37,7 @@ func New(cfg Config, runtime common.Runtime) (*MQ, error) {
 	tr, err := zerosvc.NewTransportMQTTv5(zerosvc.ConfigMQTTv5{
 		// we add a bit of randomness here so running multiple copies of on same node doesn't cause disconnects
 		// as MQTT is supposed to disconnect clients with same clientid
-		ID:      nodeName + uuid.NewV4().String()[0:8],
+		ID:      nodeName + uuid.NewString()[0:8],
 		MQTTURL: []*url.URL{addr},
 		Logger:  runtime.Logger.Named("transport"),
 	})

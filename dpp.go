@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"github.com/XANi/go-dpp/common"
 	"github.com/XANi/go-dpp/messdb"
 	"github.com/XANi/go-dpp/mq"
 	"github.com/XANi/goneric"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 	"github.com/zerosvc/go-zerosvc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -74,29 +75,30 @@ func init() {
 }
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "DPP"
-	app.Usage = "Distributed puppet runner"
-	app.Version = version
-	app.Action = func(c *cli.Context) error {
-		MainLoop(c)
-		os.Exit(0)
-		return nil
-	}
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "socket-dir",
-			Usage:  "specify dir for control socket, [dpp.socket] will be created inside",
-			Hidden: false,
-			Value:  "",
+	app := &cli.Command{
+		Name:    "DPP",
+		Usage:   "Distributed puppet runner",
+		Version: version,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			MainLoop(cmd)
+			os.Exit(0)
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:   "socket-dir",
+				Usage:  "specify dir for control socket, [dpp.socket] will be created inside",
+				Hidden: false,
+				Value:  "",
+			},
 		},
 	}
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "package",
 			Aliases: []string{"p"},
 			Usage:   "prepare deploy package",
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				out := `/tmp/dpp.tar.gz`
 				log.Infof("Preparing deploy package in %s", out)
 				d, err := deploy.NewDeployer(deploy.Config{})
@@ -115,11 +117,14 @@ func main() {
 			},
 		},
 	}
-	app.Run(os.Args)
-
+	err := app.Run(context.Background(), os.Args)
+	if err != nil {
+		log.Errorf("%s", err)
+		os.Exit(1)
+	}
 }
 
-func MainLoop(c *cli.Context) {
+func MainLoop(c *cli.Command) {
 	log.Infof("version: %s", version)
 	cfgFiles := []string{
 		"$HOME/.config/dpp/cnf.yaml",
