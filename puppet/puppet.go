@@ -113,7 +113,9 @@ func (p *Puppet) Run() (err error) {
 	p.l.Info("Puppet run ended")
 	err = cmd.Wait()
 	if err != nil {
+		p.lastrunLock.Lock()
 		p.LastRunFailed = true
+		p.lastrunLock.Unlock()
 		return err
 	}
 	runStatsFileStats, err := os.Stat(lastRunSummaryFile)
